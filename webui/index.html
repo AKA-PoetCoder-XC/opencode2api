@@ -1,120 +1,661 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>opencode2api · Field Manual</title>
-  <style>
-    :root{color-scheme:light;--paper:#f2efe5;--paper2:#e8e2d4;--ink:#17231f;--muted:#68716c;--forest:#153c34;--forest2:#204d43;--orange:#ed5a2a;--yellow:#e7b94f;--line:#c9c3b5;--white:#fffdf7;--bad:#b6382f;--ok:#237056;--shadow:0 12px 35px #17231f16}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}.mono,code,pre,.eyebrow,.nav-no,.metric,.table th,.log{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}.login{min-height:100vh;display:grid;grid-template-columns:minmax(280px,1fr) minmax(360px,520px);background:var(--forest)}.login-intro{padding:9vw 7vw;color:#f8f2e4;display:flex;flex-direction:column;justify-content:space-between;background-image:linear-gradient(#ffffff0d 1px,transparent 1px),linear-gradient(90deg,#ffffff0d 1px,transparent 1px);background-size:36px 36px}.manual-mark{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.03em}.manual-mark i{display:grid;place-items:center;width:38px;height:38px;background:var(--orange);color:white;font:normal 900 17px ui-monospace,monospace}.login-intro h1{font:500 clamp(42px,7vw,84px)/.95 Georgia,serif;letter-spacing:-.055em;margin:60px 0 18px;max-width:700px}.login-intro p{max-width:560px;color:#d4ddd8;font-size:16px}.login-panel{background:var(--paper);display:grid;place-items:center;padding:32px}.login-card{width:min(390px,100%)}.login-card h2{font:500 34px/1.1 Georgia,serif;margin:10px 0}.login-card .rule{height:4px;width:54px;background:var(--orange);margin:20px 0 28px}.layout{display:grid;grid-template-columns:274px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;color:#f8f2e4;background:var(--forest);display:flex;flex-direction:column;padding:24px 18px 20px;border-right:6px solid var(--orange)}.sidebar-head{padding:4px 10px 25px;border-bottom:1px solid #ffffff24}.sidebar-kicker{font:11px ui-monospace,monospace;color:#9fb7ae;text-transform:uppercase;letter-spacing:.18em}.sidebar-title{font:500 25px Georgia,serif;margin-top:5px}.nav{display:grid;margin-top:18px;gap:3px}.nav button{display:grid;grid-template-columns:30px 1fr;align-items:center;border:0;background:transparent;color:#b9cbc4;text-align:left;padding:10px 11px;border-left:3px solid transparent}.nav button:hover,.nav button.active{color:white;background:#ffffff0c;border-left-color:var(--orange)}.nav-no{font-size:10px;color:#76958a}.nav button.active .nav-no{color:#ff926e}.sidebar-foot{margin-top:auto;padding:18px 10px 0;border-top:1px solid #ffffff24;color:#9fb7ae;font-size:12px}.live-line{display:flex;align-items:center;gap:8px;margin-bottom:7px}.live-dot{width:8px;height:8px;background:#5dd6a6;border-radius:50%;box-shadow:0 0 0 4px #5dd6a619}.main{min-width:0;padding:30px clamp(20px,4vw,56px) 72px}.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:26px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.19em;color:var(--orange);font-weight:800}.topbar h1{font:500 clamp(30px,4vw,48px)/1 Georgia,serif;margin:7px 0}.subtitle{color:var(--muted);max-width:680px}.toolbar{display:flex;gap:8px;align-items:center}.primary,.ghost,.danger,.copy{border:1px solid var(--ink);padding:9px 14px;font-weight:750;background:transparent;color:var(--ink)}.primary{background:var(--ink);color:var(--white)}.primary:hover{background:var(--orange);border-color:var(--orange)}.ghost:hover,.copy:hover{background:var(--paper2)}.danger{color:var(--bad);border-color:var(--bad)}.wide{width:100%}.notice{border-left:5px solid var(--yellow);background:#f8eac4;padding:12px 15px;margin:-8px 0 20px}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.metric-card{background:var(--white);padding:21px;min-height:132px}.label{font:700 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}.metric{font-size:31px;font-weight:800;margin-top:19px;letter-spacing:-.06em}.metric-note{color:var(--muted);font-size:11px;margin-top:4px}.section{background:var(--white);border:1px solid var(--line);padding:22px;margin-top:18px;box-shadow:var(--shadow)}.section-head{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:16px}.section h2,.section h3{font:600 20px/1.2 Georgia,serif;margin:0}.section-caption{color:var(--muted);font-size:12px}.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:10px 8px;border-bottom:1px solid #ded9cd;vertical-align:top}.table th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.table tr:last-child td{border-bottom:0}.status{display:inline-flex;align-items:center;gap:6px;font-size:12px}.status:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:#9b6810}.guide{counter-reset:steps;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.guide-step{counter-increment:steps;background:var(--white);padding:22px;min-height:150px;position:relative}.guide-step:before{content:"0" counter(steps);font:800 11px ui-monospace,monospace;color:var(--orange);letter-spacing:.12em}.guide-step h3{font:600 18px Georgia,serif;margin:14px 0 7px}.guide-step p{color:var(--muted);margin:0 0 14px}.step-state{font:700 11px ui-monospace,monospace;text-transform:uppercase}.access-grid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px}.toc{position:sticky;top:20px;align-self:start;border-top:4px solid var(--ink);padding-top:10px}.toc button{display:block;width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:9px 4px;text-align:left;color:var(--muted)}.toc button:hover{color:var(--orange)}.code-card{margin:14px 0;border:1px solid var(--line);background:#17231f;color:#dce6df}.code-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #ffffff1f;color:#a9bcb4;font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.11em}.code-card pre{margin:0;padding:16px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:#edf3ef}.copy{color:#e8efe9;border-color:#788d84;padding:5px 9px;font-size:10px}.field{display:grid;gap:6px;margin:13px 0}.field label{font:700 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.1em;color:#56635e}.input,input,textarea,select{width:100%;border:1px solid #a9a397;background:#fffef9;color:var(--ink);padding:10px 11px;border-radius:0;outline:none}.input:focus,input:focus,textarea:focus,select:focus{border-color:var(--orange);box-shadow:0 0 0 2px #ed5a2a20}textarea{resize:vertical;min-height:92px}.check-label{display:flex!important;align-items:center;gap:9px;text-transform:none!important;letter-spacing:0!important;font-family:inherit!important}.check-label input{width:auto}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}.full{grid-column:1/-1}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}.chip{display:flex;align-items:center;gap:8px;background:var(--paper2);border:1px solid var(--line);padding:5px 7px;font:11px ui-monospace,monospace}.chip button{border:0;background:transparent;color:var(--bad);font-weight:900;padding:0}.actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.filters{display:grid;grid-template-columns:140px 160px minmax(180px,1fr) auto;gap:8px;margin-bottom:11px}.logs{height:62vh;overflow:auto;background:#13201c;color:#d7e2dc;border:1px solid #13201c}.log{display:grid;grid-template-columns:86px 55px 105px minmax(170px,1fr);gap:10px;padding:8px 10px;border-bottom:1px solid #ffffff12;font-size:11px}.log:hover{background:#ffffff08}.log-time,.log-component,.log-fields{color:#89a097}.log-fields{grid-column:4;white-space:pre-wrap;overflow-wrap:anywhere}.empty{color:var(--muted);padding:14px 8px}.error{color:var(--bad);min-height:22px}.modal{position:fixed;inset:0;background:#17231fcc;display:grid;place-items:center;padding:20px;z-index:10}.modal-card{width:min(720px,100%);max-height:82vh;overflow:auto;background:var(--paper);border-top:7px solid var(--orange);padding:24px;box-shadow:0 30px 80px #0007}.modal-card pre{white-space:pre-wrap;overflow-wrap:anywhere}.toast{position:fixed;right:22px;bottom:22px;z-index:20;background:var(--forest);color:white;border-left:5px solid #5dd6a6;padding:12px 16px;box-shadow:var(--shadow)}.toast.bad-toast{border-left-color:#ff7062}.tiny{font-size:11px;color:var(--muted)}.trend-chart{height:230px;display:flex;align-items:flex-end;gap:3px;padding:18px 4px 0;border-bottom:1px solid var(--line);overflow:hidden}.trend-bar{flex:1;min-width:2px;background:var(--forest2);border-top:3px solid var(--orange);position:relative}.trend-bar:hover{background:var(--orange)}.tier-row{display:grid;grid-template-columns:70px minmax(0,1fr) 90px;align-items:center;gap:10px;margin:14px 0}.tier-track{height:12px;background:var(--paper2)}.tier-fill{height:100%;background:var(--orange)}.play-grid{display:grid;grid-template-columns:minmax(360px,.9fr) minmax(400px,1.1fr);gap:18px}.json-editor{min-height:430px;background:#17231f;color:#e7efe9;border-color:#17231f;font:12px/1.55 ui-monospace,monospace}.fact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.fact{background:var(--white);padding:12px}.fact dt{font:700 9px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}.fact dd{margin:5px 0 0;overflow-wrap:anywhere}.pill{display:inline-block;padding:2px 6px;border:1px solid currentColor;font:10px ui-monospace,monospace}.cost{font:11px ui-monospace,monospace;white-space:nowrap}@media(max-width:1100px){.play-grid{grid-template-columns:1fr}}@media(max-width:980px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto;border-right:0;border-bottom:5px solid var(--orange);padding:15px}.sidebar-head{display:flex;align-items:end;justify-content:space-between;padding:0 5px 12px}.nav{display:flex;overflow:auto;margin-top:10px}.nav button{min-width:max-content;grid-template-columns:24px 1fr}.sidebar-foot{display:none}.main{padding-top:22px}.metric-grid{grid-template-columns:repeat(2,1fr)}.login{grid-template-columns:1fr}.login-intro{display:none}}@media(max-width:680px){.topbar{flex-direction:column}.metric-grid,.split,.guide,.form-grid,.fact-grid{grid-template-columns:1fr}.full{grid-column:auto}.access-grid{grid-template-columns:1fr}.toc{position:static}.filters{grid-template-columns:1fr 1fr}.log{grid-template-columns:72px 48px minmax(0,1fr)}.log-component{display:none}.log-fields{grid-column:1/-1}.toolbar{width:100%;justify-content:space-between}.play-grid{display:block}.json-editor{min-height:320px}.section-head{flex-direction:column}}
-  </style>
-</head>
-<body>
-  <section id="login" class="login">
-    <div class="login-intro"><div class="manual-mark"><i>O2</i> OPENCODE GATEWAY</div><div><div class="eyebrow">Operator field manual / 2026</div><h1>把协议、路由与运行状态放在一张桌面上。</h1><p>一个无外部前端依赖的本地控制面。配置、检查、接入，然后让 Gateway 保持可解释。</p></div><div class="mono">CHAT · RESPONSES · ANTHROPIC</div></div>
-    <div class="login-panel"><form id="login-form" class="login-card"><div class="eyebrow">Restricted console</div><h2>管理登录</h2><div class="rule"></div><div class="field"><label>账号</label><input id="login-user" autocomplete="username" required></div><div class="field"><label>密码</label><input id="login-pass" type="password" autocomplete="current-password" required></div><div id="login-error" class="error"></div><button class="primary wide">进入 Field Manual</button></form></div>
-  </section>
-  <div id="app" class="layout hidden">
-    <aside class="sidebar"><div class="sidebar-head"><div><div class="sidebar-kicker">Operator console</div><div class="sidebar-title">Field Manual</div></div><div class="manual-mark"><i>O2</i></div></div><nav class="nav">
-      <button data-page="overview" class="active"><span class="nav-no">01</span><span>运行桌面</span></button>
-      <button data-page="guide"><span class="nav-no">02</span><span>首次运行</span></button>
-      <button data-page="access"><span class="nav-no">03</span><span>接入手册</span></button>
-      <button data-page="usage"><span class="nav-no">04</span><span>Token 用量</span></button>
-      <button data-page="playground"><span class="nav-no">05</span><span>Playground</span></button>
-      <button data-page="diagnostics"><span class="nav-no">06</span><span>路由诊断</span></button>
-      <button data-page="config"><span class="nav-no">07</span><span>配置中心</span></button>
-      <button data-page="logs"><span class="nav-no">08</span><span>事件日志</span></button>
-      <button data-page="account"><span class="nav-no">09</span><span>账号安全</span></button>
-    </nav><div class="sidebar-foot"><div class="live-line"><span class="live-dot"></span><span>CONTROL PLANE LIVE</span></div><div id="version">version —</div></div></aside>
-    <main class="main">
-      <header class="topbar"><div><div class="eyebrow" id="page-index">Section 01</div><h1 id="page-title">运行桌面</h1><div class="subtitle" id="page-sub">最近一小时、进程累计与当前资源状态。</div></div><div class="toolbar"><button id="refresh-now" class="ghost">立即刷新</button><button id="logout" class="ghost">退出</button></div></header>
-      <div id="restart-notice" class="notice hidden"></div>
-      <section id="page-overview" class="page">
-        <div class="metric-grid"><div class="metric-card"><div class="label">Last hour requests</div><div id="m-total" class="metric">—</div><div class="metric-note">最近 60 分钟</div></div><div class="metric-card"><div class="label">Success rate</div><div id="m-rate" class="metric">—</div><div class="metric-note">HTTP 2xx–3xx</div></div><div class="metric-card"><div class="label">P95 latency</div><div id="m-p95" class="metric">—</div><div class="metric-note">端到端毫秒</div></div><div class="metric-card"><div class="label">Active / stream</div><div id="m-active" class="metric">—</div><div class="metric-note">当前并发</div></div></div>
-        <div class="split"><div class="section"><div class="section-head"><div><h2>Proxy 节点</h2><div class="section-caption">这里显示代理节点，不将其描述为出口 IP。</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>节点</th><th>健康</th><th>绑定</th></tr></thead><tbody id="proxy-table"></tbody></table></div></div><div class="section"><div class="section-head"><div><h2>Key 池</h2><div class="section-caption">仅显示 Key 最后 5 位与冷却状态。</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>Key 尾码</th><th>Tier</th><th>状态</th></tr></thead><tbody id="key-table"></tbody></table></div></div></div>
-        <div class="section"><div class="section-head"><div><h2>请求分布</h2><div class="section-caption">端点、模型、Tier 与状态码的最近一小时聚合。</div></div></div><div id="breakdowns" class="split"></div></div>
-      </section>
-      <section id="page-guide" class="page hidden"><div class="section-head"><div><h2>六步上线检查</h2><div class="section-caption">状态来自当前配置与实时资源，不写入浏览器存储。</div></div></div><div id="guide-steps" class="guide"></div></section>
-      <section id="page-access" class="page hidden"><div class="access-grid"><aside class="toc"><div class="eyebrow">Quick index</div><button data-scroll="access-base">基础地址</button><button data-scroll="access-curl">三种协议</button><button data-scroll="access-sdk">SDK 示例</button><button data-scroll="access-notes">接入注意</button></aside><div>
-        <div id="access-base" class="section"><div class="section-head"><div><h2>基础地址</h2><div class="section-caption">示例不会写入真实 Server Key。</div></div></div><div class="field"><label>推导的 API Base</label><input id="access-base-value" readonly></div><div class="field"><label>示例模型</label><input id="access-model" value="YOUR_MODEL"></div></div>
-        <div id="access-curl" class="section"><h2>三种协议入口</h2><div id="access-protocol-examples"></div></div>
-        <div id="access-sdk" class="section"><h2>Python 与 JavaScript</h2><div id="access-sdk-examples"></div></div>
-        <div id="access-notes" class="section"><h2>接入注意</h2><ul><li>OpenAI 兼容客户端使用 <code>Authorization: Bearer YOUR_API_KEY</code>。</li><li>Anthropic 客户端可使用 <code>x-api-key</code>，路径为 <code>/v1/messages</code>。</li><li>流式请求会保持原协议事件；跨协议时由 Gateway 转换。</li><li>若配置监听地址为 <code>0.0.0.0</code>，示例会改用当前浏览器主机名。</li></ul></div>
-      </div></div></section>
-      <section id="page-usage" class="page hidden">
-        <div class="metric-grid"><div class="metric-card"><div class="label">Usage coverage</div><div id="u-coverage" class="metric">—</div><div class="metric-note">有 Token 回报 / 推理请求</div></div><div class="metric-card"><div class="label">Total tokens</div><div id="u-total" class="metric">—</div><div class="metric-note">最近 60 分钟</div></div><div class="metric-card"><div class="label">Cached tokens</div><div id="u-cached" class="metric">—</div><div class="metric-note">上游回报的缓存命中</div></div><div class="metric-card"><div class="label">Reasoning tokens</div><div id="u-reasoning" class="metric">—</div><div class="metric-note">上游回报的推理用量</div></div></div>
-        <div class="section"><div class="section-head"><div><h2>每分钟 Token 趋势</h2><div class="section-caption">最近 60 分钟；悬停查看输入、输出与总量。</div></div></div><div id="usage-trend" class="trend-chart"></div></div>
-        <div class="split"><div class="section"><div class="section-head"><div><h2>模型排行</h2><div class="section-caption">按 total_tokens 排序。</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>模型</th><th>输入</th><th>输出</th><th>总量</th></tr></thead><tbody id="usage-models"></tbody></table></div></div><div class="section"><div class="section-head"><div><h2>Tier 分布</h2><div class="section-caption">Zen / Go 的 Token 去向。</div></div></div><div id="usage-tiers"></div></div></div>
-      </section>
-      <section id="page-playground" class="page hidden"><div class="play-grid"><form id="play-form" class="section"><div class="section-head"><div><h2>三协议请求台</h2><div class="section-caption">服务端强制非流式，并经由真实 Gateway 路由。</div></div></div><div class="form-grid"><div class="field"><label>入口协议</label><select id="play-protocol"><option value="chat">Chat Completions</option><option value="responses">Responses</option><option value="anthropic">Anthropic Messages</option></select></div><div class="field"><label>模型</label><select id="play-model"></select></div></div><div class="field"><label>请求 JSON</label><textarea id="play-request" class="json-editor" spellcheck="false"></textarea></div><div class="actions"><button id="play-reset" type="button" class="ghost">重置模板</button><button id="play-run" class="primary">发送诊断请求</button></div></form><div class="section"><div class="section-head"><div><h2>诊断结果</h2><div class="section-caption" id="play-state">尚未发送请求。</div></div></div><div id="play-facts" class="fact-grid"></div><div class="code-card"><div class="code-head"><span>Raw protocol response</span><button id="play-copy" type="button" class="copy">复制</button></div><pre id="play-output">{}</pre></div></div></div></section>
-      <section id="page-diagnostics" class="page hidden">
-        <div class="split"><div class="section"><div class="section-head"><div><h2>模型 Metadata</h2><div class="section-caption">models.dev OpenCode 价格缓存状态；零成本或名称含 free 任一条件即可进入匿名通道。</div></div></div><div id="metadata-facts" class="fact-grid"></div></div><div class="section"><div class="section-head"><div><h2>最近 Playground</h2><div class="section-caption">只保留当前管理进程内的最后一次追踪。</div></div></div><div id="last-playground" class="fact-grid"></div></div></div>
-        <div class="section"><div class="section-head"><div><h2>模型路由表</h2><div class="section-caption">显式协议、匿名资格来源与成本判断。</div></div><input id="diagnostic-model-search" placeholder="筛选模型" style="max-width:260px"></div><div class="table-wrap"><table class="table"><thead><tr><th>模型</th><th>原生协议</th><th>路由</th><th>匿名资格</th><th>判断来源</th><th>成本 input / output</th></tr></thead><tbody id="diagnostic-models"></tbody></table></div></div>
-        <div class="section"><div class="section-head"><div><h2>请求路由</h2><div class="section-caption">每个请求最终实际使用的 Key 尾码或 anonymous；最多展示最近 100 条。</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>Request ID</th><th>模型</th><th>Tier</th><th>通道</th><th>Key 尾码</th><th>尝试</th><th>状态</th><th>耗时</th></tr></thead><tbody id="upstream-requests"></tbody></table></div></div>
-        <div class="section"><div class="section-head"><div><h2>上游尝试</h2><div class="section-caption">Key 尾码、匿名通道与脱敏代理节点；最多展示最近 100 条。</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>Request ID</th><th>模型</th><th>通道</th><th>Key 尾码</th><th>代理节点</th><th>状态</th><th>耗时</th></tr></thead><tbody id="upstream-attempts"></tbody></table></div></div>
-      </section>
-      <section id="page-config" class="page hidden"><form id="config-form">
-        <div class="section"><div class="section-head"><div><h2>服务与管理端</h2><div class="section-caption">监听地址变更保存后需要重启。</div></div></div><div class="form-grid"><div class="field"><label>认证 Key 首选 Tier</label><select id="c-prefer"><option value="go">Go（失败回退 Zen）</option><option value="zen">Zen（失败回退 Go）</option></select></div><div class="field"><label>API Listen</label><input id="c-listen"></div><div class="field"><label>WebUI Listen</label><input id="c-web-listen"></div><div class="field"><label>Session TTL（分钟）</label><input id="c-session" type="number"></div><div class="field full"><label class="check-label"><input id="c-web-enabled" type="checkbox">启用 WebUI（修改需重启）</label></div></div></div>
-        <div class="section"><div class="section-head"><div><h2>密钥与匿名通道</h2><div class="section-caption">敏感值默认仅显示掩码；移除后保存才会生效。</div></div><button id="reveal" type="button" class="ghost">二次验证查看</button></div><div class="form-grid"><div class="field full"><label class="check-label"><input id="c-anonymous" type="checkbox">启用 Zen 匿名通道</label></div><div class="field full"><label>Server Keys</label><div id="server_keys-chips" class="chips"></div><textarea id="server_keys-new" placeholder="每行新增一个 key"></textarea></div><div class="field"><label>Zen Keys</label><div id="zen_keys-chips" class="chips"></div><textarea id="zen_keys-new" placeholder="每行新增一个 key"></textarea></div><div class="field"><label>Go Keys</label><div id="go_keys-chips" class="chips"></div><textarea id="go_keys-new" placeholder="每行新增一个 key"></textarea></div></div></div>
-        <div class="section"><div class="section-head"><div><h2>Proxy 节点</h2><div class="section-caption">支持 direct、HTTP(S) 与 SOCKS URL。</div></div></div><div id="proxies-chips" class="chips"></div><div class="form-grid"><div class="field"><label>新增 Proxy（每行一个）</label><textarea id="proxies-new" placeholder="direct&#10;http://user:pass@host:port"></textarea></div><div class="field"><label>Proxy File</label><input id="c-proxyfile" placeholder="proxies.txt"></div></div></div>
-        <div class="section"><div class="section-head"><div><h2>上游与协议路由</h2><div class="section-caption">anonymous 会耗尽可用 Proxy；显式 protocol 映射优先于模型名称推断。</div></div></div><div class="form-grid"><div class="field"><label>Zen URL</label><input id="c-up-zen"></div><div class="field"><label>Go URL</label><input id="c-up-go"></div><div class="field"><label>每个 Key Tier 最大尝试次数</label><input id="c-attempts" type="number"></div><div class="field"><label>请求超时（秒）</label><input id="c-timeout" type="number"></div><div class="field"><label>模型刷新（秒）</label><input id="c-refresh" type="number"></div><div class="field"><label>模型协议覆盖（JSON）</label><textarea id="c-protocols" spellcheck="false">{}</textarea></div></div></div>
-        <div class="section"><div class="section-head"><div><h2>性能与日志</h2><div class="section-caption">热重载会保留进程内监控累计。</div></div></div><div class="form-grid"><div class="field"><label>Max Idle Conns</label><input id="c-idle" type="number"></div><div class="field"><label>Max Idle / Host</label><input id="c-idle-host" type="number"></div><div class="field"><label>Max Conns / Host</label><input id="c-max-host" type="number"></div><div class="field"><label>Idle Timeout（秒）</label><input id="c-idle-timeout" type="number"></div><div class="field"><label>Connect Timeout（秒）</label><input id="c-connect" type="number"></div><div class="field"><label>Failure Cooldown（秒）</label><input id="c-cooldown" type="number"></div><div class="field"><label>日志级别</label><select id="c-level"><option>debug</option><option>info</option><option>warn</option><option>error</option></select></div><div class="field"><label>日志 Ring Size</label><input id="c-ring" type="number"></div></div><div class="actions"><button id="reload-config" type="button" class="ghost">从磁盘重载</button><button class="primary">验证、保存并应用</button></div></div>
-      </form></section>
-      <section id="page-logs" class="page hidden"><div class="filters"><select id="log-level"><option value="">全部级别</option><option>debug</option><option>info</option><option>warn</option><option>error</option></select><input id="log-component" placeholder="模块"><input id="log-search" placeholder="搜索事件、Request ID、模型"><button id="log-pause" class="ghost">暂停</button></div><div id="log-list" class="logs"></div></section>
-      <section id="page-account" class="page hidden"><form id="account-form" class="section" style="max-width:660px"><div class="section-head"><div><h2>更新管理账号</h2><div class="section-caption">成功后撤销全部 Session，并要求重新登录。</div></div></div><div class="field"><label>新账号（留空保持）</label><input id="a-user"></div><div class="field"><label>当前密码</label><input id="a-current" type="password" required></div><div class="field"><label>新密码（留空保持，至少 10 字符）</label><input id="a-new" type="password"></div><div class="actions"><button class="primary">更新并重新登录</button></div></form></section>
-    </main>
-  </div>
-  <div id="modal" class="modal hidden"><div class="modal-card"><div class="section-head"><div><div class="eyebrow">Sensitive values</div><h2>敏感配置</h2></div><button id="modal-close" class="ghost">关闭</button></div><pre id="modal-content"></pre></div></div><div id="toast" class="toast hidden"></div>
-  <script>
-    const $=selector=>document.querySelector(selector),$$=selector=>[...document.querySelectorAll(selector)];
-    let csrf='',config=null,monitorData=null,debugData=null,lastPlayground=null,logEvents=[],eventSource=null,paused=false,monitorTimer=null,logRenderPending=false,toastTimer=null;
-    const pages={overview:['01','运行桌面','最近一小时、进程累计与当前资源状态。'],guide:['02','首次运行','用六个检查点完成从配置到首个请求。'],access:['03','接入手册','Chat、Responses、Anthropic 与 SDK 示例。'],usage:['04','Token 用量','覆盖率、每分钟趋势、模型排行与 Tier 分布。'],playground:['05','Playground','三种入口协议共用真实 Gateway 路由与诊断。'],diagnostics:['06','路由诊断','Metadata、模型资格与每一次上游尝试。'],config:['07','配置中心','验证后原子保存，并热应用可变字段。'],logs:['08','事件日志','来自进程内 Ring Buffer 的结构化 SSE。'],account:['09','账号安全','更新后撤销全部管理 Session。']};
-    async function api(path,options={}){options.headers={...(options.headers||{}),Accept:'application/json'};if(options.body)options.headers['Content-Type']='application/json';if(csrf&&!['GET','HEAD'].includes(options.method||'GET'))options.headers['X-CSRF-Token']=csrf;const response=await fetch(path,options);if(response.status===401){showLogin();throw new Error('登录已失效')}if(response.status===204)return null;const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error?.message||`HTTP ${response.status}`);return data}
-    function toast(message,bad=false){const node=$('#toast');node.textContent=message;node.classList.toggle('bad-toast',bad);node.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.add('hidden'),3600)}
-    function showLogin(){csrf='';$('#app').classList.add('hidden');$('#login').classList.remove('hidden');if(eventSource)eventSource.close();eventSource=null;clearInterval(monitorTimer)}
-    async function enterConsole(session){csrf=session.csrf_token;$('#login').classList.add('hidden');$('#app').classList.remove('hidden');await loadConfig();await Promise.all([refreshMonitor(),loadDebugModels()]);clearInterval(monitorTimer);monitorTimer=setInterval(refreshMonitor,3000);connectLogs()}
-    async function boot(){try{await enterConsole(await api('/api/auth/session'))}catch(_){showLogin()}}
-    $('#login-form').addEventListener('submit',async event=>{event.preventDefault();$('#login-error').textContent='';try{const session=await api('/api/auth/login',{method:'POST',body:JSON.stringify({username:$('#login-user').value,password:$('#login-pass').value})});$('#login-pass').value='';await enterConsole(session)}catch(error){$('#login-error').textContent=error.message}});
-    $('#logout').onclick=async()=>{try{await api('/api/auth/logout',{method:'POST',body:'{}'})}finally{showLogin()}};
-    function openPage(page){$$('.nav button').forEach(button=>button.classList.toggle('active',button.dataset.page===page));$$('.page').forEach(node=>node.classList.toggle('hidden',node.id!==`page-${page}`));const meta=pages[page];$('#page-index').textContent=`Section ${meta[0]}`;$('#page-title').textContent=meta[1];$('#page-sub').textContent=meta[2];if(page==='access')renderAccessExamples();if(page==='usage')renderUsage();if(page==='playground'&&!debugData)loadDebugModels();if(page==='diagnostics'){loadDebugModels();renderDiagnostics()}}
-    $$('.nav button').forEach(button=>button.onclick=()=>openPage(button.dataset.page));
-    async function loadConfig(){config=await api('/api/config');fillConfig(config);renderAccessExamples()}
-    function fillConfig(value){$('#c-listen').value=value.listen;$('#c-prefer').value=value.prefer;$('#c-web-listen').value=value.webui.listen;$('#c-session').value=value.webui.session_ttl_minutes;$('#c-web-enabled').checked=value.webui.enabled;$('#c-anonymous').checked=!!value.anonymous;$('#c-proxyfile').value=value.proxyfile;$('#c-up-zen').value=value.upstream.zen;$('#c-up-go').value=value.upstream.go;$('#c-attempts').value=value.retry.max_attempts;$('#c-timeout').value=value.retry.timeout_seconds;$('#c-refresh').value=value.models.refresh_seconds;$('#c-protocols').value=JSON.stringify(value.models.protocols||{},null,2);$('#c-idle').value=value.performance.max_idle_conns;$('#c-idle-host').value=value.performance.max_idle_conns_per_host;$('#c-max-host').value=value.performance.max_conns_per_host;$('#c-idle-timeout').value=value.performance.idle_conn_timeout_seconds;$('#c-connect').value=value.performance.connect_timeout_seconds;$('#c-cooldown').value=value.performance.failure_cooldown_seconds;$('#c-level').value=value.logging.level;$('#c-ring').value=value.logging.ring_size;['server_keys','zen_keys','go_keys','proxies'].forEach(renderChips);const notice=$('#restart-notice');if(value.restart_required_fields?.length){notice.textContent=`已保存但尚未生效：${value.restart_required_fields.join(', ')}。当前 API ${value.effective.listen}、WebUI ${value.effective.webui_listen}。请重启进程。`;notice.classList.remove('hidden')}else notice.classList.add('hidden')}
-    function renderChips(name){const host=$(`#${name}-chips`);host.replaceChildren();(config[name]||[]).forEach(item=>{const chip=document.createElement('span'),text=document.createElement('span'),remove=document.createElement('button');chip.className='chip';chip.dataset.id=item.id;text.textContent=item.display;remove.type='button';remove.title='移除';remove.textContent='×';remove.onclick=()=>chip.remove();chip.append(text,remove);host.appendChild(chip)})}
-    function secretInputs(name){const kept=[...$(`#${name}-chips`).children].map(node=>({id:node.dataset.id}));const added=$(`#${name}-new`).value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean).map(value=>({value}));return kept.concat(added)}
-    const number=id=>Number($(id).value);
-    $('#config-form').addEventListener('submit',async event=>{event.preventDefault();try{const update={listen:$('#c-listen').value,server_keys:secretInputs('server_keys'),zen_keys:secretInputs('zen_keys'),go_keys:secretInputs('go_keys'),anonymous:$('#c-anonymous').checked,proxies:secretInputs('proxies'),proxyfile:$('#c-proxyfile').value,prefer:$('#c-prefer').value,upstream:{zen:$('#c-up-zen').value,go:$('#c-up-go').value},retry:{max_attempts:number('#c-attempts'),timeout_seconds:number('#c-timeout')},models:{refresh_seconds:number('#c-refresh'),protocols:JSON.parse($('#c-protocols').value||'{}')},performance:{max_idle_conns:number('#c-idle'),max_idle_conns_per_host:number('#c-idle-host'),max_conns_per_host:number('#c-max-host'),idle_conn_timeout_seconds:number('#c-idle-timeout'),connect_timeout_seconds:number('#c-connect'),failure_cooldown_seconds:number('#c-cooldown')},logging:{level:$('#c-level').value,ring_size:number('#c-ring')},webui:{enabled:$('#c-web-enabled').checked,listen:$('#c-web-listen').value,username:config.webui.username,session_ttl_minutes:number('#c-session')}};const result=await api('/api/config',{method:'PUT',body:JSON.stringify(update)});config=result.config;['server_keys','zen_keys','go_keys','proxies'].forEach(name=>$(`#${name}-new`).value='');fillConfig(config);toast(result.result.restart_required?`已应用；${result.result.restart_fields.join(', ')} 需重启`:'配置已保存并立即应用')}catch(error){toast(error.message,true)}});
-    $('#reload-config').onclick=async()=>{try{const result=await api('/api/config/reload',{method:'POST',body:'{}'});await loadConfig();toast(result.restart_required?'磁盘配置已重载，监听字段需重启':'磁盘配置已重载')}catch(error){toast(error.message,true)}};
-    $('#reveal').onclick=async()=>{const password=prompt('请再次输入管理密码');if(password===null)return;try{const values=await api('/api/config/reveal',{method:'POST',body:JSON.stringify({password})});$('#modal-content').textContent=JSON.stringify(values,null,2);$('#modal').classList.remove('hidden')}catch(error){toast(error.message,true)}};
-    $('#modal-close').onclick=()=>{$('#modal').classList.add('hidden');$('#modal-content').textContent=''};
-    $('#account-form').addEventListener('submit',async event=>{event.preventDefault();try{await api('/api/account',{method:'PUT',body:JSON.stringify({current_password:$('#a-current').value,username:$('#a-user').value,new_password:$('#a-new').value})});toast('账号已更新，请重新登录');setTimeout(showLogin,800)}catch(error){toast(error.message,true)}});
-    function appendCell(row,value,className=''){const cell=document.createElement('td');cell.textContent=String(value);if(className)cell.className=className;row.appendChild(cell)}
-    function emptyRow(host,columns,message='暂无数据'){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=columns;cell.className='empty';cell.textContent=message;row.appendChild(cell);host.appendChild(row)}
-    function renderResources(resources){const proxies=$('#proxy-table');proxies.replaceChildren();(resources.proxies||[]).forEach(proxy=>{const row=document.createElement('tr');appendCell(row,proxy.address);appendCell(row,proxy.healthy?'正常':'不可用',`status ${proxy.healthy?'ok':'bad'}`);appendCell(row,`Z ${proxy.zen_keys} · G ${proxy.go_keys} · A ${proxy.anonymous?'开':'关'}`);proxies.appendChild(row)});if(!proxies.children.length)emptyRow(proxies,3);const keys=$('#key-table');keys.replaceChildren();if(resources.anonymous){const row=document.createElement('tr');appendCell(row,'anonymous');appendCell(row,'zen');appendCell(row,'已启用','status ok');keys.appendChild(row)}(resources.keys||[]).forEach(key=>{const row=document.createElement('tr');appendCell(row,key.id);appendCell(row,key.tier);appendCell(row,key.cooldown_until?'冷却中':'可用',`status ${key.cooldown_until?'warn':'ok'}`);keys.appendChild(row)});if(!keys.children.length)emptyRow(keys,3)}
-    function renderBreakdowns(metrics){const host=$('#breakdowns');host.replaceChildren();[['端点',metrics.endpoints],['状态码',metrics.statuses],['模型',metrics.models],['Tier',metrics.tiers]].forEach(([title,data])=>{const block=document.createElement('div'),heading=document.createElement('h3'),table=document.createElement('table'),body=document.createElement('tbody');heading.textContent=title;table.className='table';Object.entries(data||{}).sort((a,b)=>b[1]-a[1]).slice(0,10).forEach(([key,value])=>{const row=document.createElement('tr');appendCell(row,key);appendCell(row,value);body.appendChild(row)});if(!body.children.length)emptyRow(body,2,'暂无请求');table.appendChild(body);block.append(heading,table);host.appendChild(block)})}
-    function renderGuide(){if(!config||!monitorData)return;const resources=monitorData.resources,models=resources.models||{},modelDescription=models.stale?'目录来自'+(models.cache_source||'磁盘')+'快取，等待背景刷新。':'上游目录已完成首次刷新且有可暴露模型。';const checks=[['登录管理端','当前 Session 已通过服务端验证。',true],['配置本地 Key','客户端使用 Server Key 访问 Gateway。',(config.server_keys||[]).length>0],['选择上游通道','至少有 Zen / Go Key，或启用匿名通道。',(config.zen_keys||[]).length+(config.go_keys||[]).length>0||config.anonymous],['检查 Proxy','至少一个代理节点健康。',(resources.proxies||[]).some(proxy=>proxy.healthy)],['等待模型目录',modelDescription,models.exposed>0&&!!models.updated_at],['复制接入示例','进入接入手册，替换模型与 YOUR_API_KEY。',true]];const host=$('#guide-steps');host.replaceChildren();checks.forEach(([title,description,done])=>{const node=document.createElement('article'),heading=document.createElement('h3'),copy=document.createElement('p'),state=document.createElement('div');node.className='guide-step';heading.textContent=title;copy.textContent=description;state.className=`step-state ${done?'ok':'warn'}`;state.textContent=done?'✓ 已就绪':'○ 待处理';node.append(heading,copy,state);host.appendChild(node)})}
-    const formatTokens=value=>Number(value||0).toLocaleString();
-    function renderUsage(){if(!monitorData)return;const usage=monitorData.usage?.last_hour||{},tokens=usage.tokens||{};$('#u-coverage').textContent=`${((usage.coverage||0)*100).toFixed(1)}%`;$('#u-total').textContent=formatTokens(tokens.total_tokens);$('#u-cached').textContent=formatTokens(tokens.cached_tokens);$('#u-reasoning').textContent=formatTokens(tokens.reasoning_tokens);const trend=$('#usage-trend'),series=monitorData.metrics?.series||[],maximum=Math.max(1,...series.map(point=>point.total_tokens||0));trend.replaceChildren();series.forEach(point=>{const bar=document.createElement('div');bar.className='trend-bar';bar.style.height=`${Math.max(2,Math.round((point.total_tokens||0)/maximum*100))}%`;bar.title=`${new Date(point.minute).toLocaleTimeString()} · input ${formatTokens(point.input_tokens)} · output ${formatTokens(point.output_tokens)} · total ${formatTokens(point.total_tokens)}`;trend.appendChild(bar)});const models=$('#usage-models');models.replaceChildren();Object.entries(usage.models||{}).sort((a,b)=>(b[1].total_tokens||0)-(a[1].total_tokens||0)).slice(0,15).forEach(([model,value])=>{const row=document.createElement('tr');appendCell(row,model);appendCell(row,formatTokens(value.input_tokens));appendCell(row,formatTokens(value.output_tokens));appendCell(row,formatTokens(value.total_tokens));models.appendChild(row)});if(!models.children.length)emptyRow(models,4,'尚无 Token 用量');const tiers=$('#usage-tiers'),tierEntries=Object.entries(usage.tiers||{}).sort((a,b)=>(b[1].total_tokens||0)-(a[1].total_tokens||0)),tierTotal=Math.max(1,...tierEntries.map(([,value])=>value.total_tokens||0));tiers.replaceChildren();tierEntries.forEach(([tier,value])=>{const row=document.createElement('div'),name=document.createElement('strong'),track=document.createElement('div'),fill=document.createElement('div'),amount=document.createElement('span');row.className='tier-row';name.textContent=tier;track.className='tier-track';fill.className='tier-fill';fill.style.width=`${Math.round((value.total_tokens||0)/tierTotal*100)}%`;amount.className='mono';amount.textContent=formatTokens(value.total_tokens);track.appendChild(fill);row.append(name,track,amount);tiers.appendChild(row)});if(!tierEntries.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='尚无 Tier 用量';tiers.appendChild(empty)}}
-    function renderFacts(selector,entries){const host=$(selector);host.replaceChildren();entries.forEach(([label,value,tone])=>{const fact=document.createElement('dl'),term=document.createElement('dt'),detail=document.createElement('dd');fact.className='fact';term.textContent=label;detail.textContent=value??'—';if(tone)detail.className=tone;fact.append(term,detail);host.appendChild(fact)})}
-    async function loadDebugModels(){try{debugData=await api('/api/debug/models');if(debugData.last_inference)lastPlayground=debugData.last_inference;const select=$('#play-model'),selected=select.value;select.replaceChildren();(debugData.models||[]).forEach(item=>{const option=document.createElement('option');option.value=item.model;option.textContent=item.model;select.appendChild(option)});if(selected&&[...select.options].some(option=>option.value===selected))select.value=selected;if(!$('#play-request').value.trim())resetPlayTemplate();renderDiagnostics()}catch(error){toast(error.message,true)}}
-    function playgroundTemplate(){const protocol=$('#play-protocol').value,model=$('#play-model').value||'YOUR_MODEL';if(protocol==='responses')return{model,input:'用一句话说明这个模型的能力。'};if(protocol==='anthropic')return{model,max_tokens:512,messages:[{role:'user',content:'用一句话说明这个模型的能力。'}]};return{model,messages:[{role:'user',content:'用一句话说明这个模型的能力。'}]}}
-    function resetPlayTemplate(){$('#play-request').value=JSON.stringify(playgroundTemplate(),null,2)}
-    $('#play-protocol').addEventListener('change',resetPlayTemplate);$('#play-model').addEventListener('change',()=>{try{const request=JSON.parse($('#play-request').value);request.model=$('#play-model').value;$('#play-request').value=JSON.stringify(request,null,2)}catch(_){resetPlayTemplate()}});$('#play-reset').onclick=resetPlayTemplate;
-    function displayPlayground(result){lastPlayground=result;$('#play-state').textContent=result.ok?`请求成功 · HTTP ${result.http_status}`:`请求失败 · HTTP ${result.http_status}`;$('#play-state').className=`section-caption ${result.ok?'ok':'bad'}`;const route=result.route||{},eligibility=route.anonymous_eligibility||{},routeLabel=route.tier?`${route.tier} / ${route.anonymous?'anonymous':(route.key_id||'key')}`:'未路由';renderFacts('#play-facts',[['HTTP 状态',result.http_status,result.ok?'ok':'bad'],['耗时',`${result.duration_ms} ms`],['Request ID',result.request_id||'—'],['实际路由',routeLabel],['原生协议',route.native_protocol||'—'],['匿名判断',`${eligibility.allowed?'允许':'拒绝'} · ${eligibility.source||'—'}`,eligibility.allowed?'ok':'warn']]);$('#play-output').textContent=JSON.stringify(result.response,null,2);renderDiagnostics()}
-    $('#play-form').addEventListener('submit',async event=>{event.preventDefault();let request;try{request=JSON.parse($('#play-request').value)}catch(error){toast(`请求 JSON 无效：${error.message}`,true);return}$('#play-run').disabled=true;$('#play-state').textContent='Gateway 请求进行中…';try{const result=await api('/api/debug/inference',{method:'POST',body:JSON.stringify({protocol:$('#play-protocol').value,request})});displayPlayground(result)}catch(error){toast(error.message,true);$('#play-state').textContent='诊断入口请求失败'}finally{$('#play-run').disabled=false}});
-    $('#play-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#play-output').textContent);toast('原始响应已复制')}catch(_){toast('浏览器不允许剪贴板访问',true)}};
-    function renderDiagnostics(){if(!monitorData&&!debugData)return;const metadata=debugData?.metadata||monitorData?.resources?.metadata||{},last=lastPlayground||debugData?.last_inference;renderFacts('#metadata-facts',[['就绪',metadata.ready?'是':'否',metadata.ready?'ok':'warn'],['模型数',formatTokens(metadata.models)],['更新时间',metadata.updated_at?new Date(metadata.updated_at).toLocaleString():'尚未更新'],['是否过期',metadata.stale?'是':'否',metadata.stale?'warn':'ok'],['下次刷新',metadata.next_refresh?new Date(metadata.next_refresh).toLocaleString():'—'],['最近错误',metadata.last_error||'无',metadata.last_error?'bad':'ok']]);renderFacts('#last-playground',last?[['结果',last.ok?'成功':'失败',last.ok?'ok':'bad'],['HTTP',last.http_status],['耗时',`${last.duration_ms} ms`],['Request ID',last.request_id||'—'],['模型',last.route?.model||'—'],['路由',last.route?.tier?`${last.route.tier} / ${last.route.anonymous?'anonymous':(last.route.key_id||'key')}`:'未路由']]:[['状态','尚无 Playground 追踪']]);renderDiagnosticModels();const requests=$('#upstream-requests');requests.replaceChildren();(monitorData?.upstream?.requests||[]).slice(-100).reverse().forEach(request=>{const row=document.createElement('tr');appendCell(row,new Date(request.time).toLocaleTimeString());appendCell(row,request.request_id);appendCell(row,request.model);appendCell(row,request.tier||'—');appendCell(row,request.channel);appendCell(row,request.key_id||'—');appendCell(row,request.attempts);appendCell(row,request.status||request.outcome,request.success?'ok':'bad');appendCell(row,`${request.duration_ms} ms`);requests.appendChild(row)});if(!requests.children.length)emptyRow(requests,9,'尚无请求路由');const attempts=$('#upstream-attempts');attempts.replaceChildren();(monitorData?.upstream?.recent||[]).slice(-100).reverse().forEach(attempt=>{const row=document.createElement('tr');appendCell(row,new Date(attempt.time).toLocaleTimeString());appendCell(row,attempt.request_id);appendCell(row,attempt.model);appendCell(row,`${attempt.tier} / ${attempt.channel}`);appendCell(row,attempt.key_id);appendCell(row,attempt.proxy_node);appendCell(row,attempt.status||attempt.outcome,attempt.success?'ok':'bad');appendCell(row,`${attempt.duration_ms} ms`);attempts.appendChild(row)});if(!attempts.children.length)emptyRow(attempts,8,'尚无上游尝试')}
-    function renderDiagnosticModels(){const host=$('#diagnostic-models');if(!host||!debugData)return;const query=$('#diagnostic-model-search').value.trim().toLowerCase();host.replaceChildren();(debugData.models||[]).filter(item=>!query||item.model.toLowerCase().includes(query)).forEach(item=>{const eligibility=item.anonymous_eligibility||{},row=document.createElement('tr'),input=eligibility.input_cost,output=eligibility.output_cost,plan=[...(item.anonymous?['anonymous']:[]),...(item.key_tiers||[])];appendCell(row,item.model);appendCell(row,`${item.native_protocol} · ${item.protocol_source}`);appendCell(row,item.route_error||(plan.length?plan.join(' → '):'—'),item.route_error?'bad':'');appendCell(row,eligibility.allowed?'允许':'拒绝',eligibility.allowed?'ok':'warn');appendCell(row,eligibility.source||'—');appendCell(row,`${input==null?'?':input} / ${output==null?'?':output}`,'cost');host.appendChild(row)});if(!host.children.length)emptyRow(host,6,'没有匹配模型')}
-    $('#diagnostic-model-search').addEventListener('input',renderDiagnosticModels);
-    async function refreshMonitor(){try{monitorData=await api('/api/monitor');const metrics=monitorData.metrics;$('#version').textContent=`version ${monitorData.version}`;$('#m-total').textContent=Number(metrics.last_hour.total||0).toLocaleString();$('#m-rate').textContent=`${((metrics.last_hour.success_rate||0)*100).toFixed(1)}%`;$('#m-p95').textContent=`${metrics.last_hour.p95_ms||0} ms`;$('#m-active').textContent=`${metrics.active_requests||0} / ${metrics.active_streams||0}`;renderResources(monitorData.resources);renderBreakdowns(metrics);renderGuide();renderUsage();renderDiagnostics()}catch(_){} }
-    $('#refresh-now').onclick=async()=>{await Promise.all([refreshMonitor(),loadConfig(),loadDebugModels()]);toast('状态已刷新')};
-    function derivedAPIBase(){if(!config)return`${location.protocol}//${location.hostname}:8080`;const listen=config.effective?.listen||config.listen||':8080';const bracket=listen.match(/^\[.*\]:(\d+)$/),plain=listen.match(/:(\d+)$/),port=(bracket||plain)?.[1]||'8080';return`${location.protocol}//${location.hostname}:${port}`}
-    function codeCard(label,text){const card=document.createElement('div'),head=document.createElement('div'),title=document.createElement('span'),copy=document.createElement('button'),pre=document.createElement('pre'),code=document.createElement('code');card.className='code-card';head.className='code-head';title.textContent=label;copy.type='button';copy.className='copy';copy.textContent='复制';copy.onclick=async()=>{try{await navigator.clipboard.writeText(text);toast('示例已复制')}catch(_){toast('浏览器不允许剪贴板访问',true)}};head.append(title,copy);code.textContent=text;pre.appendChild(code);card.append(head,pre);return card}
-    function renderAccessExamples(){if(!config)return;const base=derivedAPIBase(),model=$('#access-model')?.value.trim()||'YOUR_MODEL';$('#access-base-value').value=base;const protocols=$('#access-protocol-examples'),sdks=$('#access-sdk-examples');protocols.replaceChildren();sdks.replaceChildren();const chat=`curl ${base}/v1/chat/completions \\\n  -H "Authorization: Bearer YOUR_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model":"${model}","messages":[{"role":"user","content":"Hello"}]}'`;const responses=`curl ${base}/v1/responses \\\n  -H "Authorization: Bearer YOUR_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model":"${model}","input":"Hello"}'`;const anthropic=`curl ${base}/v1/messages \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "anthropic-version: 2023-06-01" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model":"${model}","max_tokens":512,"messages":[{"role":"user","content":"Hello"}]}'`;protocols.append(codeCard('Chat Completions',chat),codeCard('Responses',responses),codeCard('Anthropic Messages',anthropic));const python=`from openai import OpenAI\n\nclient = OpenAI(base_url="${base}/v1", api_key="YOUR_API_KEY")\nresponse = client.chat.completions.create(\n    model="${model}",\n    messages=[{"role": "user", "content": "Hello"}],\n)\nprint(response.choices[0].message.content)`;const javascript=`import OpenAI from "openai";\n\nconst client = new OpenAI({\n  baseURL: "${base}/v1",\n  apiKey: "YOUR_API_KEY",\n});\nconst response = await client.responses.create({\n  model: "${model}",\n  input: "Hello",\n});\nconsole.log(response.output_text);`;sdks.append(codeCard('Python · OpenAI SDK',python),codeCard('JavaScript · OpenAI SDK',javascript))}
-    $('#access-model').addEventListener('input',renderAccessExamples);$$('[data-scroll]').forEach(button=>button.onclick=()=>document.getElementById(button.dataset.scroll).scrollIntoView({behavior:'smooth'}));
-    function connectLogs(){if(eventSource)eventSource.close();eventSource=new EventSource('/api/logs/stream');eventSource.addEventListener('log',event=>{const item=JSON.parse(event.data);logEvents.push(item);if(logEvents.length>2000)logEvents.shift();if(!paused&&!logRenderPending){logRenderPending=true;requestAnimationFrame(()=>{logRenderPending=false;renderLogs()})}});eventSource.addEventListener('gap',()=>toast('较早日志已从内存清除',true))}
-    function renderLogs(){const level=$('#log-level').value,component=$('#log-component').value.toLowerCase(),query=$('#log-search').value.toLowerCase(),rows=logEvents.filter(item=>(!level||item.level===level)&&(!component||(item.component||'').toLowerCase().includes(component))&&(!query||JSON.stringify(item).toLowerCase().includes(query))).slice(-500),host=$('#log-list');host.replaceChildren();rows.forEach(item=>{const row=document.createElement('div');row.className='log';const timeNode=document.createElement('span'),levelNode=document.createElement('span'),componentNode=document.createElement('span'),messageNode=document.createElement('span'),fieldsNode=document.createElement('span');timeNode.className='log-time';timeNode.textContent=new Date(item.time).toLocaleTimeString();levelNode.className=item.level==='error'?'bad':item.level==='warn'?'warn':item.level==='info'?'ok':'';levelNode.textContent=item.level;componentNode.className='log-component';componentNode.textContent=item.component||'core';messageNode.textContent=item.message;fieldsNode.className='log-fields';fieldsNode.textContent=JSON.stringify(item.fields||{});row.append(timeNode,levelNode,componentNode,messageNode,fieldsNode);host.appendChild(row)});if(!rows.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='等待日志事件…';host.appendChild(empty)}host.scrollTop=host.scrollHeight}
-    ['#log-level','#log-component','#log-search'].forEach(id=>$(id).addEventListener('input',renderLogs));$('#log-pause').onclick=()=>{paused=!paused;$('#log-pause').textContent=paused?'继续':'暂停';if(!paused)renderLogs()};
-    boot();
-  </script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>opencode2api · Field Manual</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <section id="login" class="login">
+      <div class="login-intro">
+        <div class="manual-mark"><i>O2</i> OPENCODE GATEWAY</div>
+        <div>
+          <div class="eyebrow">Operator field manual / 2026</div>
+          <h1>把协议、路由与运行状态放在一张桌面上。</h1>
+          <p>一个无外部前端依赖的本地控制面。配置、检查、接入，然后让 Gateway 保持可解释。</p>
+        </div>
+        <div class="mono">CHAT · RESPONSES · ANTHROPIC</div>
+      </div>
+      <div class="login-panel">
+        <form id="login-form" class="login-card">
+          <div class="eyebrow">Restricted console</div>
+          <h2>管理登录</h2>
+          <div class="rule"></div>
+          <div class="field">
+            <label>账号</label><input id="login-user" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label>密码</label
+            ><input id="login-pass" type="password" autocomplete="current-password" required />
+          </div>
+          <div id="login-error" class="error"></div>
+          <button class="primary wide">进入 Field Manual</button>
+        </form>
+      </div>
+    </section>
+    <div id="app" class="layout hidden">
+      <aside class="sidebar">
+        <div class="sidebar-head">
+          <div>
+            <div class="sidebar-kicker">Operator console</div>
+            <div class="sidebar-title">Field Manual</div>
+          </div>
+          <div class="manual-mark"><i>O2</i></div>
+        </div>
+        <nav class="nav">
+          <button data-page="overview" class="active">
+            <span class="nav-no">01</span><span>运行桌面</span>
+          </button>
+          <button data-page="guide"><span class="nav-no">02</span><span>首次运行</span></button>
+          <button data-page="access"><span class="nav-no">03</span><span>接入手册</span></button>
+          <button data-page="usage"><span class="nav-no">04</span><span>Token 用量</span></button>
+          <button data-page="playground">
+            <span class="nav-no">05</span><span>Playground</span>
+          </button>
+          <button data-page="diagnostics">
+            <span class="nav-no">06</span><span>路由诊断</span>
+          </button>
+          <button data-page="config"><span class="nav-no">07</span><span>配置中心</span></button>
+          <button data-page="logs"><span class="nav-no">08</span><span>事件日志</span></button>
+          <button data-page="account"><span class="nav-no">09</span><span>账号安全</span></button>
+        </nav>
+        <div class="sidebar-foot">
+          <div class="live-line"><span class="live-dot"></span><span>CONTROL PLANE LIVE</span></div>
+          <div id="version">version —</div>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow" id="page-index">Section 01</div>
+            <h1 id="page-title">运行桌面</h1>
+            <div class="subtitle" id="page-sub">最近一小时、进程累计与当前资源状态。</div>
+          </div>
+          <div class="toolbar">
+            <button id="refresh-now" class="ghost">立即刷新</button
+            ><button id="logout" class="ghost">退出</button>
+          </div>
+        </header>
+        <div id="restart-notice" class="notice hidden"></div>
+        <section id="page-overview" class="page">
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="label">Last hour requests</div>
+              <div id="m-total" class="metric">—</div>
+              <div class="metric-note">最近 60 分钟</div>
+            </div>
+            <div class="metric-card">
+              <div class="label">Success rate</div>
+              <div id="m-rate" class="metric">—</div>
+              <div class="metric-note">HTTP 2xx–3xx</div>
+            </div>
+            <div class="metric-card">
+              <div class="label">P95 latency</div>
+              <div id="m-p95" class="metric">—</div>
+              <div class="metric-note">端到端毫秒</div>
+            </div>
+            <div class="metric-card">
+              <div class="label">Active / stream</div>
+              <div id="m-active" class="metric">—</div>
+              <div class="metric-note">当前并发</div>
+            </div>
+          </div>
+          <div class="split">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>Proxy 节点</h2>
+                  <div class="section-caption">这里显示代理节点，不将其描述为出口 IP。</div>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>节点</th>
+                      <th>健康</th>
+                      <th>绑定</th>
+                    </tr>
+                  </thead>
+                  <tbody id="proxy-table"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>Key 池</h2>
+                  <div class="section-caption">仅显示 Key 最后 5 位与冷却状态。</div>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Key 尾码</th>
+                      <th>Tier</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="key-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <h2>请求分布</h2>
+                <div class="section-caption">端点、模型、Tier 与状态码的最近一小时聚合。</div>
+              </div>
+            </div>
+            <div id="breakdowns" class="split"></div>
+          </div>
+        </section>
+        <section id="page-guide" class="page hidden">
+          <div class="section-head">
+            <div>
+              <h2>六步上线检查</h2>
+              <div class="section-caption">状态来自当前配置与实时资源，不写入浏览器存储。</div>
+            </div>
+          </div>
+          <div id="guide-steps" class="guide"></div>
+        </section>
+        <section id="page-access" class="page hidden">
+          <div class="access-grid">
+            <aside class="toc">
+              <div class="eyebrow">Quick index</div>
+              <button data-scroll="access-base">基础地址</button
+              ><button data-scroll="access-curl">三种协议</button
+              ><button data-scroll="access-sdk">SDK 示例</button
+              ><button data-scroll="access-notes">接入注意</button>
+            </aside>
+            <div>
+              <div id="access-base" class="section">
+                <div class="section-head">
+                  <div>
+                    <h2>基础地址</h2>
+                    <div class="section-caption">示例不会写入真实 Server Key。</div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>推导的 API Base</label><input id="access-base-value" readonly />
+                </div>
+                <div class="field">
+                  <label>示例模型</label><input id="access-model" value="YOUR_MODEL" />
+                </div>
+              </div>
+              <div id="access-curl" class="section">
+                <h2>三种协议入口</h2>
+                <div id="access-protocol-examples"></div>
+              </div>
+              <div id="access-sdk" class="section">
+                <h2>Python 与 JavaScript</h2>
+                <div id="access-sdk-examples"></div>
+              </div>
+              <div id="access-notes" class="section">
+                <h2>接入注意</h2>
+                <ul>
+                  <li>OpenAI 兼容客户端使用 <code>Authorization: Bearer YOUR_API_KEY</code>。</li>
+                  <li>
+                    Anthropic 客户端可使用 <code>x-api-key</code>，路径为
+                    <code>/v1/messages</code>。
+                  </li>
+                  <li>流式请求会保持原协议事件；跨协议时由 Gateway 转换。</li>
+                  <li>若配置监听地址为 <code>0.0.0.0</code>，示例会改用当前浏览器主机名。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="page-usage" class="page hidden">
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="label">Usage coverage</div>
+              <div id="u-coverage" class="metric">—</div>
+              <div class="metric-note">有 Token 回报 / 推理请求</div>
+            </div>
+            <div class="metric-card">
+              <div class="label">Total tokens</div>
+              <div id="u-total" class="metric">—</div>
+              <div class="metric-note">最近 60 分钟</div>
+            </div>
+            <div class="metric-card">
+              <div class="label">Cached tokens</div>
+              <div id="u-cached" class="metric">—</div>
+              <div class="metric-note">上游回报的缓存命中</div>
+            </div>
+            <div class="metric-card">
+              <div class="label">Reasoning tokens</div>
+              <div id="u-reasoning" class="metric">—</div>
+              <div class="metric-note">上游回报的推理用量</div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <h2>每分钟 Token 趋势</h2>
+                <div class="section-caption">最近 60 分钟；悬停查看输入、输出与总量。</div>
+              </div>
+            </div>
+            <div id="usage-trend" class="trend-chart"></div>
+          </div>
+          <div class="split">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>模型排行</h2>
+                  <div class="section-caption">按 total_tokens 排序。</div>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>模型</th>
+                      <th>输入</th>
+                      <th>输出</th>
+                      <th>总量</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usage-models"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>Tier 分布</h2>
+                  <div class="section-caption">Zen / Go 的 Token 去向。</div>
+                </div>
+              </div>
+              <div id="usage-tiers"></div>
+            </div>
+          </div>
+        </section>
+        <section id="page-playground" class="page hidden">
+          <div class="play-grid">
+            <form id="play-form" class="section">
+              <div class="section-head">
+                <div>
+                  <h2>三协议请求台</h2>
+                  <div class="section-caption">服务端强制非流式，并经由真实 Gateway 路由。</div>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>入口协议</label
+                  ><select id="play-protocol">
+                    <option value="chat">Chat Completions</option>
+                    <option value="responses">Responses</option>
+                    <option value="anthropic">Anthropic Messages</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>模型</label
+                  ><select id="play-model"></select>
+                </div>
+                <div class="field full">
+                  <label>上游 Key</label
+                  ><select id="play-key">
+                    <option value="auto">自动路由（匿名 / Tier 回退 / Key 轮询）</option>
+                  </select>
+                  <div class="section-caption">
+                    选择具体 Key 后只测试该 Key：不会切换到其他 Key、其他 Tier
+                    或匿名通道，也不会改变 Key 冷却或代理健康状态。
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label>请求 JSON</label
+                ><textarea id="play-request" class="json-editor" spellcheck="false"></textarea>
+              </div>
+              <div class="actions">
+                <button id="play-reset" type="button" class="ghost">重置模板</button
+                ><button id="play-run" class="primary">发送诊断请求</button>
+              </div>
+            </form>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>诊断结果</h2>
+                  <div class="section-caption" id="play-state">尚未发送请求。</div>
+                </div>
+              </div>
+              <div id="play-facts" class="fact-grid"></div>
+              <div class="code-card">
+                <div class="code-head">
+                  <span>Raw protocol response</span
+                  ><button id="play-copy" type="button" class="copy">复制</button>
+                </div>
+                <pre id="play-output">{}</pre>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="page-diagnostics" class="page hidden">
+          <div class="split">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>模型 Metadata</h2>
+                  <div class="section-caption">
+                    models.dev OpenCode 价格缓存状态；零成本或名称含 free 任一条件即可进入匿名通道。
+                  </div>
+                </div>
+              </div>
+              <div id="metadata-facts" class="fact-grid"></div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>最近 Playground</h2>
+                  <div class="section-caption">只保留当前管理进程内的最后一次追踪。</div>
+                </div>
+              </div>
+              <div id="last-playground" class="fact-grid"></div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <h2>模型路由表</h2>
+                <div class="section-caption">显式协议、匿名资格来源与成本判断。</div>
+              </div>
+              <input id="diagnostic-model-search" placeholder="筛选模型" />
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>模型</th>
+                    <th>原生协议</th>
+                    <th>路由</th>
+                    <th>匿名资格</th>
+                    <th>判断来源</th>
+                    <th>成本 input / output</th>
+                  </tr>
+                </thead>
+                <tbody id="diagnostic-models"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <h2>请求路由</h2>
+                <div class="section-caption">
+                  每个请求最终实际使用的 Key 尾码或 anonymous；最多展示最近 100 条。
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>Request ID</th>
+                    <th>模型</th>
+                    <th>Tier</th>
+                    <th>通道</th>
+                    <th>Key 尾码</th>
+                    <th>尝试</th>
+                    <th>状态</th>
+                    <th>耗时</th>
+                  </tr>
+                </thead>
+                <tbody id="upstream-requests"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-head">
+              <div>
+                <h2>上游尝试</h2>
+                <div class="section-caption">
+                  Key 尾码、匿名通道与脱敏代理节点；最多展示最近 100 条。
+                </div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>Request ID</th>
+                    <th>模型</th>
+                    <th>通道</th>
+                    <th>Key 尾码</th>
+                    <th>代理节点</th>
+                    <th>状态</th>
+                    <th>耗时</th>
+                  </tr>
+                </thead>
+                <tbody id="upstream-attempts"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <section id="page-config" class="page hidden">
+          <form id="config-form">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>服务与管理端</h2>
+                  <div class="section-caption">监听地址变更保存后需要重启。</div>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>认证 Key 首选 Tier</label
+                  ><select id="c-prefer">
+                    <option value="go">Go（失败回退 Zen）</option>
+                    <option value="zen">Zen（失败回退 Go）</option>
+                  </select>
+                </div>
+                <div class="field"><label>API Listen</label><input id="c-listen" /></div>
+                <div class="field"><label>WebUI Listen</label><input id="c-web-listen" /></div>
+                <div class="field">
+                  <label>Session TTL（分钟）</label><input id="c-session" type="number" />
+                </div>
+                <div class="field full">
+                  <label class="check-label"
+                    ><input id="c-web-enabled" type="checkbox" />启用 WebUI（修改需重启）</label
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>密钥与匿名通道</h2>
+                  <div class="section-caption">敏感值默认仅显示掩码；移除后保存才会生效。</div>
+                </div>
+                <button id="reveal" type="button" class="ghost">二次验证查看</button>
+              </div>
+              <div class="form-grid">
+                <div class="field full">
+                  <label class="check-label"
+                    ><input id="c-anonymous" type="checkbox" />启用 Zen 匿名通道</label
+                  >
+                </div>
+                <div class="field full">
+                  <label>Server Keys</label>
+                  <div id="server_keys-chips" class="chips"></div>
+                  <textarea id="server_keys-new" placeholder="每行新增一个 key"></textarea>
+                </div>
+                <div class="field">
+                  <label>Zen Keys</label>
+                  <div id="zen_keys-chips" class="chips"></div>
+                  <textarea id="zen_keys-new" placeholder="每行新增一个 key"></textarea>
+                </div>
+                <div class="field">
+                  <label>Go Keys</label>
+                  <div id="go_keys-chips" class="chips"></div>
+                  <textarea id="go_keys-new" placeholder="每行新增一个 key"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>Proxy 节点</h2>
+                  <div class="section-caption">支持 direct、HTTP(S) 与 SOCKS URL。</div>
+                </div>
+              </div>
+              <div id="proxies-chips" class="chips"></div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>新增 Proxy（每行一个）</label
+                  ><textarea
+                    id="proxies-new"
+                    placeholder="direct&#10;http://user:pass@host:port"
+                  ></textarea>
+                </div>
+                <div class="field">
+                  <label>Proxy File</label><input id="c-proxyfile" placeholder="proxies.txt" />
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>上游与协议路由</h2>
+                  <div class="section-caption">
+                    anonymous 会耗尽可用 Proxy；显式 protocol 映射优先于模型名称推断。
+                  </div>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field"><label>Zen URL</label><input id="c-up-zen" /></div>
+                <div class="field"><label>Go URL</label><input id="c-up-go" /></div>
+                <div class="field">
+                  <label>每个 Key Tier 最大尝试次数</label><input id="c-attempts" type="number" />
+                </div>
+                <div class="field">
+                  <label>请求超时（秒）</label><input id="c-timeout" type="number" />
+                </div>
+                <div class="field">
+                  <label>模型刷新（秒）</label><input id="c-refresh" type="number" />
+                </div>
+                <div class="field">
+                  <label>模型协议覆盖（JSON）</label
+                  ><textarea id="c-protocols" spellcheck="false">{}</textarea>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h2>性能与日志</h2>
+                  <div class="section-caption">热重载会保留进程内监控累计。</div>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label>Max Idle Conns</label><input id="c-idle" type="number" />
+                </div>
+                <div class="field">
+                  <label>Max Idle / Host</label><input id="c-idle-host" type="number" />
+                </div>
+                <div class="field">
+                  <label>Max Conns / Host</label><input id="c-max-host" type="number" />
+                </div>
+                <div class="field">
+                  <label>Idle Timeout（秒）</label><input id="c-idle-timeout" type="number" />
+                </div>
+                <div class="field">
+                  <label>Connect Timeout（秒）</label><input id="c-connect" type="number" />
+                </div>
+                <div class="field">
+                  <label>Failure Cooldown（秒）</label><input id="c-cooldown" type="number" />
+                </div>
+                <div class="field">
+                  <label>Attempt Timeout（秒）</label
+                  ><input
+                    id="c-attempt-timeout"
+                    type="number"
+                    min="0"
+                    placeholder="0 = 跟随请求超时"
+                  />
+                </div>
+                <div class="field">
+                  <label>日志级别</label
+                  ><select id="c-level">
+                    <option>debug</option>
+                    <option>info</option>
+                    <option>warn</option>
+                    <option>error</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>日志 Ring Size</label><input id="c-ring" type="number" />
+                </div>
+                <div class="field full">
+                  <label class="check-label"
+                    ><input
+                      id="c-dump-bodies"
+                      type="checkbox"
+                    />转储出站请求体（已脱敏，仅用于排查重试与转换问题）</label
+                  >
+                </div>
+              </div>
+              <div class="actions">
+                <button id="reload-config" type="button" class="ghost">从磁盘重载</button
+                ><button class="primary">验证、保存并应用</button>
+              </div>
+            </div>
+          </form>
+        </section>
+        <section id="page-logs" class="page hidden">
+          <div class="filters">
+            <select id="log-level">
+              <option value="">全部级别</option>
+              <option>debug</option>
+              <option>info</option>
+              <option>warn</option>
+              <option>error</option></select
+            ><input id="log-component" placeholder="模块" /><input
+              id="log-search"
+              placeholder="搜索事件、Request ID、模型"
+            /><button id="log-pause" class="ghost">暂停</button>
+          </div>
+          <div id="log-list" class="logs"></div>
+        </section>
+        <section id="page-account" class="page hidden">
+          <form id="account-form" class="section">
+            <div class="section-head">
+              <div>
+                <h2>更新管理账号</h2>
+                <div class="section-caption">成功后撤销全部 Session，并要求重新登录。</div>
+              </div>
+            </div>
+            <div class="field"><label>新账号（留空保持）</label><input id="a-user" /></div>
+            <div class="field">
+              <label>当前密码</label><input id="a-current" type="password" required />
+            </div>
+            <div class="field">
+              <label>新密码（留空保持，至少 10 字符）</label><input id="a-new" type="password" />
+            </div>
+            <div class="actions"><button class="primary">更新并重新登录</button></div>
+          </form>
+        </section>
+      </main>
+    </div>
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Sensitive values</div>
+            <h2>敏感配置</h2>
+          </div>
+          <button id="modal-close" class="ghost">关闭</button>
+        </div>
+        <pre id="modal-content"></pre>
+      </div>
+    </div>
+    <div id="toast" class="toast hidden"></div>
+    <script src="/app.js" defer></script>
+  </body>
 </html>

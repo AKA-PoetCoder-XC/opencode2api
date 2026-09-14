@@ -277,7 +277,8 @@ func (m *RuntimeManager) Resources() ResourceSnapshot {
 		return ResourceSnapshot{}
 	}
 	gateway := runtime.gateway
-	result := ResourceSnapshot{Models: gateway.catalog.Snapshot(), Anonymous: gateway.cfg.Anonymous}
+	_, models := gateway.availableModels()
+	result := ResourceSnapshot{Models: models, Anonymous: gateway.cfg.Anonymous}
 	if gateway.catalog.metadata != nil {
 		result.Metadata = gateway.catalog.metadata.Snapshot()
 	}
@@ -327,6 +328,74 @@ func (m *RuntimeManager) DebugRoute(model string, requested Protocol) ModelRoute
 	}
 	gateway := runtime.gateway
 	return gateway.catalog.Diagnostic(model, requested, len(gateway.cfg.ZenKeys) > 0, len(gateway.cfg.GoKeys) > 0, gateway.cfg.Anonymous)
+}
+
+// DebugKeyView is the operator-facing view of one configured upstream key. It
+// carries only the redacted suffix and the stable fingerprint, never the value.
+type DebugKeyView struct {
+	ID            string     `json:"id"`
+	Tier          Tier       `json:"tier"`
+	Display       string     `json:"display"`
+	Index         int        `json:"index"`
+	Failures      uint32     `json:"failures"`
+	CooldownUntil *time.Time `json:"cooldown_until,omitempty"`
+}
+
+// DebugKeys lists every configured upstream key per tier so the Playground can
+// offer an explicit per-key test target.
+func (m *RuntimeManager) DebugKeys() map[string][]DebugKeyView {
+	result := map[string][]DebugKeyView{"zen": {}, "go": {}}
+	runtime := m.current.Load()
+	if runtime == nil {
+		return result
+	}
+	appendKeys := func(tier Tier, nodes []*upstreamNode) {
+		for _, node := range nodes {
+			view := DebugKeyView{
+				ID: secretFingerprint(node.key), Tier: tier, Display: maskValue(node.key),
+				Index: node.index, Failures: node.failures.Load(),
+			}
+			if until := node.cooldownUntil.Load(); until > time.Now().UnixNano() {
+				value := time.Unix(0, until).UTC()
+				view.CooldownUntil = &value
+			}
+			result[string(tier)] = append(result[string(tier)], view)
+		}
+	}
+	appendKeys(TierZen, runtime.gateway.zenNodes.nodes)
+	appendKeys(TierGo, runtime.gateway.goNodes.nodes)
+	return result
+}
+
+func (m *RuntimeManager) DebugKey(tier Tier, id string) *DebugKeyView {
+	for _, view := range m.DebugKeys()[string(tier)] {
+		if view.ID == id {
+			selected := view
+			return &selected
+		}
+	}
+	return nil
+}
+
+// DebugRouteForTier reports the route a diagnostic against one tier would take.
+func (m *RuntimeManager) DebugRouteForTier(model string, tier Tier) (ModelRouteDiagnostic, error) {
+	runtime := m.current.Load()
+	if runtime == nil {
+		return ModelRouteDiagnostic{Model: model, RouteError: "gateway runtime is unavailable"}, fmt.Errorf("gateway runtime is unavailable")
+	}
+	gateway := runtime.gateway
+	hasZen, hasGo := len(gateway.cfg.ZenKeys) > 0, len(gateway.cfg.GoKeys) > 0
+	diagnostic := gateway.catalog.Diagnostic(model, "", hasZen, hasGo, false)
+	route, err := gateway.catalog.RouteForTier(model, tier, hasZen, hasGo)
+	if err != nil {
+		diagnostic.RouteError = err.Error()
+		return diagnostic, err
+	}
+	diagnostic.RouteError = ""
+	diagnostic.Tier, diagnostic.Anonymous = route.Tier, false
+	diagnostic.KeyTiers = []Tier{tier}
+	diagnostic.NativeProtocol, diagnostic.NativeProtocols = route.Protocol, route.Protocols
+	return diagnostic, nil
 }
 
 func keyStatuses(tier string, pool *nodePool) []KeyStatus {
