@@ -1,45 +1,22 @@
 package main
 
 import (
-	"bytes"
-	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"crypto/subtle"
 	"embed"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"log/slog"
-	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
-const adminCookieName = "opencode2api_session"
-
 //go:embed webui/*
 var webAssets embed.FS
-
-type adminSession struct {
-	Username    string
-	AuthVersion string
-	CSRF        string
-	Expires     time.Time
-}
-
-type loginWindow struct {
-	Started time.Time
-	Count   int
-}
 
 type AdminServer struct {
 	manager       *RuntimeManager
@@ -101,135 +78,12 @@ func (a *AdminServer) staticHandler() http.Handler {
 
 func (a *AdminServer) securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 		w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (a *AdminServer) handleLogin(w http.ResponseWriter, r *http.Request) {
-	client := clientIP(r)
-	if !a.allowLogin(client) {
-		writeAdminError(w, http.StatusTooManyRequests, "rate_limited", "too many login attempts; try again later")
-		return
-	}
-	var input struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-	if err := decodeAdminJSON(w, r, &input); err != nil {
-		writeAdminError(w, http.StatusBadRequest, "invalid_request", err.Error())
-		return
-	}
-	cfg := a.manager.Config()
-	usernameMatch := len(input.Username) == len(cfg.WebUI.Username) && subtle.ConstantTimeCompare([]byte(input.Username), []byte(cfg.WebUI.Username)) == 1
-	passwordMatch := verifyPassword(cfg.WebUI.PasswordHash, input.Password)
-	if !usernameMatch || !passwordMatch {
-		a.recordLoginFailure(client)
-		a.logger.Warn("admin login failed", "component", "auth", "event", "login_failed", "client_ip", client)
-		writeAdminError(w, http.StatusUnauthorized, "invalid_credentials", "invalid username or password")
-		return
-	}
-	token, err := randomToken(32)
-	if err != nil {
-		writeAdminError(w, http.StatusInternalServerError, "internal_error", "could not create session")
-		return
-	}
-	csrf, err := randomToken(24)
-	if err != nil {
-		writeAdminError(w, http.StatusInternalServerError, "internal_error", "could not create session")
-		return
-	}
-	expires := time.Now().Add(time.Duration(cfg.WebUI.SessionTTLMinutes) * time.Minute)
-	a.mu.Lock()
-	delete(a.attempts, client)
-	a.cleanupSessionsLocked(time.Now())
-	if len(a.sessions) >= 2048 {
-		a.removeEarliestSessionLocked()
-	}
-	a.sessions[tokenDigest(token)] = adminSession{Username: cfg.WebUI.Username, AuthVersion: secretFingerprint(cfg.WebUI.PasswordHash), CSRF: csrf, Expires: expires}
-	a.mu.Unlock()
-	http.SetCookie(w, &http.Cookie{Name: adminCookieName, Value: token, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, Expires: expires, MaxAge: int(time.Until(expires).Seconds()), Secure: requestIsSecure(r)})
-	w.Header().Set("Cache-Control", "no-store")
-	a.logger.Info("admin login succeeded", "component", "auth", "event", "login_succeeded", "client_ip", client)
-	writeJSON(w, http.StatusOK, map[string]any{"username": cfg.WebUI.Username, "csrf_token": csrf, "expires_at": expires.UTC()})
-}
-
-func (a *AdminServer) handleSession(w http.ResponseWriter, r *http.Request) {
-	session, _ := sessionFromContext(r)
-	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, map[string]any{"authenticated": true, "username": session.Username, "csrf_token": session.CSRF, "expires_at": session.Expires.UTC()})
-}
-
-func (a *AdminServer) handleLogout(w http.ResponseWriter, r *http.Request) {
-	cookie, _ := r.Cookie(adminCookieName)
-	if cookie != nil {
-		a.mu.Lock()
-		delete(a.sessions, tokenDigest(cookie.Value))
-		a.mu.Unlock()
-	}
-	http.SetCookie(w, &http.Cookie{Name: adminCookieName, Value: "", Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: -1, Secure: requestIsSecure(r)})
-	w.WriteHeader(http.StatusNoContent)
-}
-
-type sessionContextKey struct{}
-
-func (a *AdminServer) authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(adminCookieName)
-		if err != nil || cookie.Value == "" {
-			writeAdminError(w, http.StatusUnauthorized, "authentication_required", "login required")
-			return
-		}
-		now := time.Now()
-		a.mu.Lock()
-		session, ok := a.sessions[tokenDigest(cookie.Value)]
-		if ok && now.After(session.Expires) {
-			delete(a.sessions, tokenDigest(cookie.Value))
-			ok = false
-		}
-		a.mu.Unlock()
-		if !ok {
-			writeAdminError(w, http.StatusUnauthorized, "authentication_required", "session expired or invalid")
-			return
-		}
-		cfg := a.manager.Config()
-		if session.Username != cfg.WebUI.Username || session.AuthVersion != secretFingerprint(cfg.WebUI.PasswordHash) {
-			writeAdminError(w, http.StatusUnauthorized, "authentication_required", "session is no longer valid")
-			return
-		}
-		r = r.WithContext(context.WithValue(r.Context(), sessionContextKey{}, session))
-		next.ServeHTTP(w, r)
-	})
-}
-
-func sessionFromContext(r *http.Request) (adminSession, bool) {
-	session, ok := r.Context().Value(sessionContextKey{}).(adminSession)
-	return session, ok
-}
-
-func (a *AdminServer) csrf(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, ok := sessionFromContext(r)
-		if !ok || subtle.ConstantTimeCompare([]byte(r.Header.Get("X-CSRF-Token")), []byte(session.CSRF)) != 1 {
-			writeAdminError(w, http.StatusForbidden, "csrf_failed", "invalid CSRF token")
-			return
-		}
-		if origin := r.Header.Get("Origin"); origin != "" {
-			parsed, err := url.Parse(origin)
-			expectedScheme := "http"
-			if requestIsSecure(r) {
-				expectedScheme = "https"
-			}
-			if err != nil || !strings.EqualFold(parsed.Host, r.Host) || !strings.EqualFold(parsed.Scheme, expectedScheme) {
-				writeAdminError(w, http.StatusForbidden, "origin_failed", "request origin does not match this server")
-				return
-			}
-		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -366,209 +220,11 @@ func (a *AdminServer) handleReveal(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"server_keys": cfg.ServerKeys, "zen_keys": cfg.ZenKeys, "go_keys": cfg.GoKeys, "proxies": cfg.Proxies})
 }
 
-func (a *AdminServer) handleAccount(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		CurrentPassword string `json:"current_password"`
-		Username        string `json:"username"`
-		NewPassword     string `json:"new_password"`
-	}
-	if err := decodeAdminJSON(w, r, &input); err != nil {
-		writeAdminError(w, http.StatusBadRequest, "invalid_request", err.Error())
-		return
-	}
-	cfg := a.manager.Config()
-	if !verifyPassword(cfg.WebUI.PasswordHash, input.CurrentPassword) {
-		writeAdminError(w, http.StatusForbidden, "verification_failed", "current password is incorrect")
-		return
-	}
-	if username := strings.TrimSpace(input.Username); username != "" {
-		cfg.WebUI.Username = username
-	}
-	if input.NewPassword != "" {
-		cfg.WebUI.Password = input.NewPassword
-	}
-	if _, err := a.manager.Apply(cfg, true); err != nil {
-		writeAdminError(w, http.StatusBadRequest, "account_update_failed", err.Error())
-		return
-	}
-	a.mu.Lock()
-	a.sessions = make(map[string]adminSession)
-	a.mu.Unlock()
-	http.SetCookie(w, &http.Cookie{Name: adminCookieName, Value: "", Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: -1, Secure: requestIsSecure(r)})
-	a.logger.Info("admin account updated", "component", "auth", "event", "account_updated", "client_ip", clientIP(r))
-	writeJSON(w, http.StatusOK, map[string]any{"updated": true, "reauthenticate": true})
-}
-
 func (a *AdminServer) handleMonitor(w http.ResponseWriter, _ *http.Request) {
 	metrics := a.monitor.Snapshot()
 	writeJSON(w, http.StatusOK, map[string]any{
 		"version": version, "metrics": metrics, "usage": metrics.Usage, "upstream": metrics.Upstream, "resources": a.manager.Resources(),
 	})
-}
-
-type DebugInferenceRequest struct {
-	Protocol Protocol       `json:"protocol"`
-	Request  map[string]any `json:"request"`
-}
-
-type DebugInferenceResult struct {
-	OK         bool                 `json:"ok"`
-	HTTPStatus int                  `json:"http_status"`
-	DurationMS int64                `json:"duration_ms"`
-	RequestID  string               `json:"request_id,omitempty"`
-	Route      ModelRouteDiagnostic `json:"route"`
-	Response   any                  `json:"response"`
-}
-
-func (a *AdminServer) handleDebugModels(w http.ResponseWriter, _ *http.Request) {
-	models, metadata := a.manager.DebugModels()
-	catalog := a.manager.Resources().Models
-	a.mu.Lock()
-	last := a.lastInference
-	a.mu.Unlock()
-	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, map[string]any{"models": models, "metadata": metadata, "catalog": catalog, "last_inference": last})
-}
-
-func (a *AdminServer) handleDebugInference(w http.ResponseWriter, r *http.Request) {
-	if !a.allowDebug(clientIP(r)) {
-		writeAdminError(w, http.StatusTooManyRequests, "debug_rate_limited", "too many Playground requests; retry in one minute")
-		return
-	}
-	var input DebugInferenceRequest
-	if err := decodeAdminJSON(w, r, &input); err != nil {
-		writeAdminError(w, http.StatusBadRequest, "invalid_request", err.Error())
-		return
-	}
-	if !validProtocol(input.Protocol) {
-		writeAdminError(w, http.StatusBadRequest, "invalid_protocol", "protocol must be chat, responses, or anthropic")
-		return
-	}
-	if input.Request == nil {
-		writeAdminError(w, http.StatusBadRequest, "invalid_request", "request must be a JSON object")
-		return
-	}
-	payload := cloneMap(input.Request)
-	payload["stream"] = false
-	model := stringAt(payload, "model")
-	if model == "" {
-		writeAdminError(w, http.StatusBadRequest, "invalid_request", "request.model is required")
-		return
-	}
-	route := a.manager.DebugRoute(model, input.Protocol)
-	encoded, err := json.Marshal(payload)
-	if err != nil {
-		writeAdminError(w, http.StatusBadRequest, "invalid_request", "request contains unsupported JSON values")
-		return
-	}
-	path := protocolPath(input.Protocol)
-	request, err := http.NewRequestWithContext(r.Context(), http.MethodPost, "http://gateway.local"+path, bytes.NewReader(encoded))
-	if err != nil {
-		writeAdminError(w, http.StatusInternalServerError, "debug_request_failed", "could not construct Gateway request")
-		return
-	}
-	cfg := a.manager.Config()
-	if len(cfg.ServerKeys) == 0 {
-		writeAdminError(w, http.StatusServiceUnavailable, "debug_unavailable", "no local server key is configured")
-		return
-	}
-	request.Header.Set("Authorization", "Bearer "+cfg.ServerKeys[0])
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Accept", "application/json")
-	recorder := newDebugResponseRecorder()
-	started := time.Now()
-	a.manager.Handler().ServeHTTP(recorder, request)
-	duration := time.Since(started)
-	requestID := recorder.Header().Get("x-request-id")
-	if requestID != "" {
-		snapshot := a.monitor.Snapshot().Upstream
-		for index := len(snapshot.Requests) - 1; index >= 0; index-- {
-			if snapshot.Requests[index].RequestID == requestID {
-				requestRoute := snapshot.Requests[index]
-				route.Anonymous = requestRoute.Anonymous
-				route.Tier = Tier(requestRoute.Tier)
-				route.KeyID = requestRoute.KeyID
-				route.Channel = requestRoute.Channel
-				route.Attempts = requestRoute.Attempts
-				break
-			}
-		}
-		if route.KeyID == "" {
-			for index := len(snapshot.Recent) - 1; index >= 0; index-- {
-				if snapshot.Recent[index].RequestID == requestID {
-					attempt := snapshot.Recent[index]
-					route.Anonymous = attempt.Anonymous
-					route.Tier = Tier(attempt.Tier)
-					route.KeyID = attempt.KeyID
-					route.Channel = attempt.Channel
-					break
-				}
-			}
-		}
-	}
-	var raw any
-	if json.Unmarshal(recorder.body.Bytes(), &raw) != nil {
-		raw = recorder.body.String()
-	}
-	raw = sanitizeDebugValue(raw, a.manager.redactor)
-	result := DebugInferenceResult{
-		OK: recorder.status >= 200 && recorder.status < 300, HTTPStatus: recorder.status,
-		DurationMS: max(duration.Milliseconds(), 0), RequestID: requestID, Route: route, Response: raw,
-	}
-	a.mu.Lock()
-	a.lastInference = &result
-	a.mu.Unlock()
-	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, result)
-}
-
-type debugResponseRecorder struct {
-	header http.Header
-	body   bytes.Buffer
-	status int
-}
-
-func newDebugResponseRecorder() *debugResponseRecorder {
-	return &debugResponseRecorder{header: make(http.Header), status: http.StatusOK}
-}
-
-func (recorder *debugResponseRecorder) Header() http.Header { return recorder.header }
-
-func (recorder *debugResponseRecorder) WriteHeader(status int) {
-	if recorder.status != http.StatusOK || status == http.StatusOK {
-		return
-	}
-	recorder.status = status
-}
-
-func (recorder *debugResponseRecorder) Write(data []byte) (int, error) {
-	return recorder.body.Write(data)
-}
-
-func sanitizeDebugValue(value any, redactor *SecretRedactor) any {
-	switch current := value.(type) {
-	case map[string]any:
-		result := make(map[string]any, len(current))
-		for key, item := range current {
-			lower := strings.ToLower(key)
-			if sensitiveDebugKey(lower) {
-				result[key] = "***"
-				continue
-			}
-			result[key] = sanitizeDebugValue(item, redactor)
-		}
-		return result
-	case []any:
-		result := make([]any, len(current))
-		for index, item := range current {
-			result[index] = sanitizeDebugValue(item, redactor)
-		}
-		return result
-	case string:
-		return redactor.String(current)
-	default:
-		return value
-	}
 }
 
 func (a *AdminServer) handleLogs(w http.ResponseWriter, r *http.Request) {
@@ -699,123 +355,6 @@ func resolveSecrets(inputs []SecretInput, existing []string) ([]string, error) {
 		}
 	}
 	return result, nil
-}
-
-func (a *AdminServer) allowLogin(client string) bool {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	now := time.Now()
-	if len(a.attempts) > 1024 {
-		for address, candidate := range a.attempts {
-			if now.Sub(candidate.Started) > 5*time.Minute {
-				delete(a.attempts, address)
-			}
-		}
-	}
-	if _, exists := a.attempts[client]; !exists && len(a.attempts) >= 4096 {
-		return false
-	}
-	window := a.attempts[client]
-	if window.Started.IsZero() || now.Sub(window.Started) > 5*time.Minute {
-		return true
-	}
-	return window.Count < 5
-}
-
-func (a *AdminServer) recordLoginFailure(client string) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	now := time.Now()
-	window := a.attempts[client]
-	if window.Started.IsZero() || now.Sub(window.Started) > 5*time.Minute {
-		window = loginWindow{Started: now}
-	}
-	window.Count++
-	a.attempts[client] = window
-}
-
-func (a *AdminServer) allowDebug(client string) bool {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	now := time.Now()
-	window := a.debugAttempts[client]
-	if window.Started.IsZero() || now.Sub(window.Started) >= time.Minute {
-		window = loginWindow{Started: now}
-	}
-	if window.Count >= 12 {
-		return false
-	}
-	window.Count++
-	a.debugAttempts[client] = window
-	if len(a.debugAttempts) > 4096 {
-		for key, candidate := range a.debugAttempts {
-			if now.Sub(candidate.Started) >= time.Minute {
-				delete(a.debugAttempts, key)
-			}
-		}
-	}
-	return true
-}
-
-func (a *AdminServer) cleanupSessionsLocked(now time.Time) {
-	for token, session := range a.sessions {
-		if now.After(session.Expires) {
-			delete(a.sessions, token)
-		}
-	}
-}
-
-func (a *AdminServer) removeEarliestSessionLocked() {
-	var earliestToken string
-	var earliest time.Time
-	for token, session := range a.sessions {
-		if earliestToken == "" || session.Expires.Before(earliest) {
-			earliestToken, earliest = token, session.Expires
-		}
-	}
-	if earliestToken != "" {
-		delete(a.sessions, earliestToken)
-	}
-}
-
-func randomToken(length int) (string, error) {
-	data := make([]byte, length)
-	if _, err := rand.Read(data); err != nil {
-		return "", err
-	}
-	return base64.RawURLEncoding.EncodeToString(data), nil
-}
-
-func tokenDigest(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
-}
-
-func clientIP(r *http.Request) string {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err == nil {
-		return host
-	}
-	return r.RemoteAddr
-}
-
-func requestIsSecure(r *http.Request) bool {
-	if r == nil {
-		return false
-	}
-	return r.TLS != nil || strings.EqualFold(strings.TrimSpace(r.Header.Get("X-Forwarded-Proto")), "https")
-}
-
-func sensitiveDebugKey(key string) bool {
-	for _, hint := range []string{
-		"authorization", "cookie", "password", "secret", "api_key", "api-key", "x-api-key",
-		"access_token", "refresh_token", "set-cookie", "credential",
-	} {
-		if strings.Contains(key, hint) {
-			return true
-		}
-	}
-	return false
 }
 
 func decodeAdminJSON(w http.ResponseWriter, r *http.Request, target any) error {

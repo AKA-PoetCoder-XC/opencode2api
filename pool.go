@@ -328,6 +328,20 @@ func (p *nodePool) RestoreProxy(recoveredProxy int) int {
 
 func (p *nodePool) Len() int { return len(p.nodes) }
 
+// NodeByID resolves a node by its stable fingerprint. Callers only ever hold
+// the fingerprint, never the key value, so the lookup cannot leak a secret.
+func (p *nodePool) NodeByID(id string) *upstreamNode {
+	if p == nil || id == "" {
+		return nil
+	}
+	for _, node := range p.nodes {
+		if secretFingerprint(node.key) == id {
+			return node
+		}
+	}
+	return nil
+}
+
 func (p *nodePool) Proxy(node *upstreamNode) *proxyTransport {
 	if p == nil || node == nil || p.transports == nil {
 		return nil
