@@ -25,7 +25,7 @@ WebUI 内嵌在可执行文件中，运行服务无需 Node.js 或数据库。
 git clone https://github.com/jasonxu114514/opencode2api.git
 cd opencode2api
 cp config.example.json config.json
-go build -o opencode2api .
+go build -o opencode2api ./cmd/opencode2api
 ```
 
 启动前编辑 `config.json`：
@@ -38,7 +38,7 @@ go build -o opencode2api .
 ./opencode2api -config config.json
 ```
 
-Windows 下使用 `Copy-Item config.example.json config.json` 复制配置，执行 `go build -o opencode2api.exe .` 编译，再运行 `.\opencode2api.exe -config config.json`。
+Windows 下使用 `Copy-Item config.example.json config.json` 复制配置，执行 `go build -o opencode2api.exe ./cmd/opencode2api` 编译，再运行 `.\opencode2api.exe -config config.json`。
 
 示例配置的 API 监听 `127.0.0.1:8080`，WebUI 监听 `0.0.0.0:8081`。本机可访问 `http://localhost:8081`。通过网络访问管理界面时，请限制访问范围，并使用 HTTPS 反向代理。
 
@@ -352,30 +352,45 @@ Token 统计仅使用上游报告的 usage。输入 Token 包含缓存读取和�
 
 ## 开发
 
-代码按职责组织：
+Go 源码按职责拆分为独立包。程序入口负责组装服务，具体实现放在 `internal/` 中。
 
-| 文件                                                   | 职责                                                |
-| ------------------------------------------------------ | --------------------------------------------------- |
-| `main.go`、`config.go`、`runtime.go`                   | 启动、配置校验与运行时切换。                        |
-| `gateway*.go`、`upstream.go`、`pool.go`、`ids.go`      | HTTP 接口、路由、重试、目录刷新、连接与会话亲和性。 |
-| `convert*.go`                                          | 统一中间结构、请求和响应转换、内容映射。            |
-| `stream.go`、`stream_parser.go`、`stream_emitter.go`   | SSE 传输、解析及协议输出。                          |
-| `models.go`、`model_*.go`                              | 模型目录、原生能力、价格与缓存。                    |
-| `admin*.go`、`password.go`                             | 管理 API、认证与诊断。                              |
-| `observability.go`、`metrics.go`、`logging.go`         | HTTP 观测、统计聚合与脱敏日志。                     |
-| `webui/index.html`、`webui/app.js`、`webui/styles.css` | 内嵌静态界面，无需前端构建。                        |
-
-Go 检查：
-
-```bash
-gofmt -w .
-go vet ./...
-go test ./...
-go test -race ./...
-go build .
+```text
+cmd/
+  opencode2api/main.go    命令行参数、启动与优雅退出
+internal/
+  admin/                 管理 API、登录会话与 Playground
+  buildinfo/             健康检查和管理接口共享的版本信息
+  config/                配置解析、持久化、密码与脱敏
+  gateway/               HTTP 路由、重试、资源池、刷新与运行时
+  httpx/                 通用 HTTP 响应、响应体处理与请求头
+  identity/              请求标识与会话亲和性
+  jsonutil/              JSON 取值与解码辅助函数
+  models/                模型目录、能力、价格与缓存
+  protocol/              请求和响应转换、SSE 解析与输出
+  telemetry/             请求跟踪、指标、日志与异常恢复
+webui/
+  embed.go               将三个静态资源内嵌到可执行文件
+  index.html             页面结构
+  app.js                 界面交互
+  styles.css             界面样式
 ```
 
-竞态检测需要启用 CGO 并安装受支持的 C 编译器。推理测试使用本地服务器或模拟 Transport，不需要生产 Key。
+建议阅读顺序：
+
+1. [程序入口](cmd/opencode2api/main.go) → [运行时管理](internal/gateway/runtime.go) → [HTTP 处理](internal/gateway/gateway.go)。
+2. [上游请求](internal/gateway/upstream.go)和[模型路由](internal/models/catalog.go)说明请求如何选择并到达上游。
+3. [请求转换](internal/protocol/request.go)、[响应转换](internal/protocol/response.go)和[流式传输](internal/protocol/stream.go)说明协议处理过程。
+4. [管理路由](internal/admin/server.go)和 [WebUI 交互](webui/app.js)说明配置编辑与诊断功能。
+
+执行 Go 格式化、静态分析和程序构建：
+
+```bash
+gofmt -w cmd internal webui
+go vet ./...
+go build -o opencode2api ./cmd/opencode2api
+```
+
+开发时可以直接运行 `go run ./cmd/opencode2api -config config.json`。发布构建仍通过 `-ldflags "-X main.version=vX.Y.Z"` 注入版本号。
 
 Node.js 仅用于开发时的格式化和 JavaScript 语法检查：
 
@@ -386,7 +401,7 @@ npm run format:check
 npm run check:web
 ```
 
-项目通过 `.editorconfig`、`.gitattributes`、Go 格式化和固定版本的 Prettier 统一格式。PR 检查覆盖 Linux / Windows 上的 Go 1.24 与稳定版 Go、Linux 竞态检测、格式、WebUI 语法和容器入口脚本语法。发布压缩包包含中英文两份 README。
+项目通过 `.editorconfig`、`.gitattributes`、Go 格式化和固定版本的 Prettier 统一格式。CI 覆盖 Linux / Windows 上的 Go 1.24 与稳定版 Go 的 `go vet` 和构建，以及格式、WebUI 语法和容器入口脚本语法检查。发布压缩包包含中英文两份 README。
 
 ## 常见问题
 

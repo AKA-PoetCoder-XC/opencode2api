@@ -25,7 +25,7 @@ Download a binary from [GitHub Releases](https://github.com/jasonxu114514/openco
 git clone https://github.com/jasonxu114514/opencode2api.git
 cd opencode2api
 cp config.example.json config.json
-go build -o opencode2api .
+go build -o opencode2api ./cmd/opencode2api
 ```
 
 Before starting, edit `config.json`:
@@ -38,7 +38,7 @@ Before starting, edit `config.json`:
 ./opencode2api -config config.json
 ```
 
-On Windows, use `Copy-Item config.example.json config.json`, build with `go build -o opencode2api.exe .`, then run `.\opencode2api.exe -config config.json`.
+On Windows, use `Copy-Item config.example.json config.json`, build with `go build -o opencode2api.exe ./cmd/opencode2api`, then run `.\opencode2api.exe -config config.json`.
 
 The example listens on `127.0.0.1:8080` for the API and `0.0.0.0:8081` for the WebUI. Open `http://localhost:8081` locally. Restrict management access and use an HTTPS reverse proxy when accessing it over a network.
 
@@ -352,30 +352,45 @@ The staleness threshold is twice `models.refresh_seconds`, with a minimum of 60 
 
 ## Development
 
-Source organization:
+Go source is organized into packages by responsibility. The command wires the service together; implementation packages live under `internal/`.
 
-| Files                                                  | Responsibility                                                             |
-| ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `main.go`, `config.go`, `runtime.go`                   | Startup, validated configuration, runtime replacement.                     |
-| `gateway*.go`, `upstream.go`, `pool.go`, `ids.go`      | HTTP handlers, routing, retries, discovery refresh, connections, affinity. |
-| `convert*.go`                                          | Shared representation, request/response conversion, content mapping.       |
-| `stream.go`, `stream_parser.go`, `stream_emitter.go`   | SSE transport, parsing, and protocol output.                               |
-| `models.go`, `model_*.go`                              | Catalog, native capabilities, prices, and caches.                          |
-| `admin*.go`, `password.go`                             | Management API, authentication, and diagnostics.                           |
-| `observability.go`, `metrics.go`, `logging.go`         | HTTP observation, aggregation, and redacted logs.                          |
-| `webui/index.html`, `webui/app.js`, `webui/styles.css` | Embedded static interface; no frontend build step.                         |
-
-Run Go checks:
-
-```bash
-gofmt -w .
-go vet ./...
-go test ./...
-go test -race ./...
-go build .
+```text
+cmd/
+  opencode2api/main.go    CLI flags, startup, and graceful shutdown
+internal/
+  admin/                 Management API, login sessions, and Playground
+  buildinfo/             Version shared by health and management endpoints
+  config/                Configuration, persistence, passwords, and redaction
+  gateway/               HTTP routing, retries, pools, refresh, and runtime
+  httpx/                 Shared HTTP responses, body handling, and headers
+  identity/              Request IDs and session affinity
+  jsonutil/              JSON access and decoding helpers
+  models/                Model catalog, capabilities, pricing, and caches
+  protocol/              Request/response conversion and SSE parsing/output
+  telemetry/             Request tracking, metrics, logs, and recovery
+webui/
+  embed.go               Embeds the three static assets into the executable
+  index.html             Page structure
+  app.js                 UI behavior
+  styles.css             UI styles
 ```
 
-The race detector needs CGO and a supported C compiler. Tests use local servers or stub transports for inference; no production keys are required.
+Suggested reading order:
+
+1. [Command entry](cmd/opencode2api/main.go) → [runtime management](internal/gateway/runtime.go) → [HTTP handlers](internal/gateway/gateway.go).
+2. [Upstream attempts](internal/gateway/upstream.go) and [model routing](internal/models/catalog.go) explain how a request reaches a provider.
+3. [Request conversion](internal/protocol/request.go), [response conversion](internal/protocol/response.go), and [stream transport](internal/protocol/stream.go) cover protocol behavior.
+4. [Management routes](internal/admin/server.go) and [WebUI logic](webui/app.js) cover configuration and diagnostics.
+
+Run Go formatting, analysis, and the command build:
+
+```bash
+gofmt -w cmd internal webui
+go vet ./...
+go build -o opencode2api ./cmd/opencode2api
+```
+
+For local development, start the service with `go run ./cmd/opencode2api -config config.json`. Release builds still inject the version with `-ldflags "-X main.version=vX.Y.Z"`.
 
 Node.js is only needed for development formatting and JavaScript syntax checks:
 
@@ -386,7 +401,7 @@ npm run format:check
 npm run check:web
 ```
 
-`.editorconfig`, `.gitattributes`, Go formatting, and pinned Prettier settings standardize the source. PR checks cover Go 1.24 and stable Go on Linux/Windows, Linux race detection, formatting, WebUI syntax, and entrypoint shell syntax. Release archives include both READMEs.
+`.editorconfig`, `.gitattributes`, Go formatting, and pinned Prettier settings standardize the source. CI runs `go vet` and builds with Go 1.24 and stable Go on Linux/Windows, plus formatting, WebUI syntax, and entrypoint shell syntax checks. Release archives include both READMEs.
 
 ## Troubleshooting
 

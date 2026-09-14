@@ -17,7 +17,7 @@ RUN CGO_ENABLED=0 \
     go build \
       -trimpath \
       -ldflags="-s -w -X main.version=${VERSION}" \
-      -o /out/opencode2api ./
+      -o /out/opencode2api ./cmd/opencode2api
 
 FROM alpine:3.22
 

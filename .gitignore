@@ -4,8 +4,8 @@ config.json.bak
 .config-*.tmp
 *.models.dev.json
 opencode/
-opencode2api
-opencode2api.exe
+/opencode2api
+/opencode2api.exe
 *.log
 .tmp/
 .gocache/

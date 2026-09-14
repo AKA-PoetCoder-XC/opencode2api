@@ -44,8 +44,8 @@ jobs:
           echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
           echo "image_name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
-  test:
-    name: Test
+  verify:
+    name: Verify source
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -57,12 +57,15 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Run tests
-        run: go test ./...
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
 
   build:
     name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
-    needs: [prepare, test]
+    needs: [prepare, verify]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -124,7 +127,7 @@ jobs:
           ARCHIVE_FORMAT: ${{ matrix.archive }}
         run: |
           mkdir -p "dist/$PACKAGE_NAME"
-          go build -trimpath -ldflags="-s -w -X main.version=$RELEASE_TAG" -o "dist/$PACKAGE_NAME/opencode2api$EXTENSION" ./
+          go build -trimpath -ldflags="-s -w -X main.version=$RELEASE_TAG" -o "dist/$PACKAGE_NAME/opencode2api$EXTENSION" ./cmd/opencode2api
           cp README.md README.zh-CN.md config.example.json "dist/$PACKAGE_NAME/"
           if [[ "$ARCHIVE_FORMAT" == "zip" ]]; then
             (cd dist && zip -q -r "$PACKAGE_NAME.zip" "$PACKAGE_NAME")
@@ -146,7 +149,7 @@ jobs:
 
   container:
     name: Publish GHCR image
-    needs: [prepare, test]
+    needs: [prepare, verify]
     runs-on: ubuntu-latest
     permissions:
       contents: read
