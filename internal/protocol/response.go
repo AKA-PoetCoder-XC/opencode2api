@@ -143,6 +143,14 @@ func encodeBridgeResponse(protocol Protocol, response bridgeResponse) map[string
 	if response.ID == "" {
 		response.ID = identity.RandomID("resp", 12)
 	}
+	if isToolStop(response.Stop) && len(response.Tools) == 0 {
+		// The turn ended as a tool call upstream, but no usable tool block
+		// was ever assembled (missing name or arguments). A tool_use stop
+		// reason with zero tool_use blocks makes strict clients end the
+		// turn running nothing and reporting no error. Demote to a plain
+		// stop so the client treats it as text end-of-turn and continues.
+		response.Stop = "stop"
+	}
 	switch protocol {
 	case Chat:
 		message := map[string]any{"role": "assistant", "content": response.Text}
@@ -372,6 +380,17 @@ func canonicalAnthropicStop(stop string) string {
 		return "error"
 	default:
 		return "stop"
+	}
+}
+
+// isToolStop reports whether a canonical bridge stop reason promises tool
+// calls downstream.
+func isToolStop(stop string) bool {
+	switch stop {
+	case "tool_calls", "tool_use", "function_call":
+		return true
+	default:
+		return false
 	}
 }
 
